@@ -68,6 +68,18 @@ Norm3 hemispheresample(Norm3 normal, double aroundX, double aroundZ) noexcept {
 	return normal.rotate(x, aroundX).rotate(normal, aroundZ);
 }
 
+Norm3 hemispheresample2(Norm3 normal, double u, double v) noexcept {
+	const auto xy = Norm3::orthogonal_from_z(normal);
+	const auto x = xy.first;
+	const auto y = xy.second;
+
+	auto theta = 2 * constants::pi * u;
+	auto radiusSquared = v;
+	auto radius = sqrt(radiusSquared);
+	auto pos = Vec3(cos(theta) * radius, sin(theta) * radius, sqrt(1 - radiusSquared));
+	return pos.transform( { x,y,normal }).norm();
+}
+
 Color radiance(const Ray& r, const Scene& scene, std::mt19937& rnd, const RenderParams& params, unsigned int depth) {
 	if (depth > params.max_depth)
 		return {};
@@ -98,9 +110,13 @@ Color radiance(const Ray& r, const Scene& scene, std::mt19937& rnd, const Render
 		const auto maxVSamples = depth < 1 ? params.numVSamples : 1;
 		for (auto vSample = 0; vSample < maxVSamples; ++vSample) {
 			for (auto uSample = 0; uSample < maxUSamples; ++uSample) {
-				const double aroundZ = 2 * constants::pi * (uSample + uni(rnd)) / maxUSamples;
+				/*const double aroundZ = 2 * constants::pi * (uSample + uni(rnd)) / maxUSamples;
 				const double aroundX = 0.5 * constants::pi * (vSample + uni(rnd)) / maxVSamples;
-				const Norm3 outbound = hemispheresample(nearest.normal, aroundX, aroundZ);
+				const Norm3 outbound = hemispheresample(nearest.normal, aroundX, aroundZ);*/
+				const double u = (uSample + uni(rnd)) / maxUSamples;
+				const double v = (vSample + uni(rnd)) / maxVSamples;
+				const Norm3 outbound = hemispheresample2(nearest.normal, u, v);
+
 				result += radiance(
 					Ray(nearest.hit_position, outbound),
 					scene, rnd, params, ++depth);
@@ -156,7 +172,7 @@ int main(int argc, char* argv[]) {
 		,.numVSamples{4}
 		,.preview{false}
 		,.max_depth{5}
-		,.samplesPerPixel{500}
+		,.samplesPerPixel{1000}
 	};
 	const CameraParams camParams{};
 
@@ -168,9 +184,9 @@ int main(int argc, char* argv[]) {
 		Ray r{};
 		for (unsigned int s = 0; s < renderParams.samplesPerPixel; ++s) {
 			r = Ray({ (x + uni(rng)) * x_rezi,(y + uni(rng)) * y_rezi,0.05 }, Norm3::zAxis());
-			c += radiance(r, scene, rng, renderParams, 0);
+			c += radiance(r, scene, rng, renderParams, 0) / renderParams.samplesPerPixel;
 		}
-		c = clamp(c / renderParams.samplesPerPixel, 0.0, 1.0);
+		c = clamp(c , 0.0, 1.0);
 		return (counter++, c);};
 
 	Color c{};
@@ -187,7 +203,7 @@ int main(int argc, char* argv[]) {
 		std::vector<std::future<Color>> results(maxx*maxy);
 		assert(("array of pixels and array of futures are not of same length!",pixels.size() == results.size()));
 		std::random_device r_device;
-		unsigned int seed = r_device();
+		const unsigned int seed = r_device();
 		for (std::size_t y = 0; y < maxy; ++y) {
 			for (std::size_t x = 0; x < maxx; ++x) {
 				results[y * maxx + x] = std::async(std::launch::async, job, x, y, std::mt19937(seed + y * maxx + x));

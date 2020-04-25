@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cassert>
 #include "Constants.h"
+#include <array>
 
 class Norm3;
 
@@ -38,6 +39,8 @@ public:
 		return Vec3(x_ / d, y_ / d, z_ / d);
 	}
 	[[nodiscard]] constexpr Vec3 operator-() { return Vec3(-x_, -y_, -z_); }
+
+	[[nodiscard]] constexpr Vec3 transform(const std::array<Norm3, 3> basis);
 
 	[[nodiscard]] constexpr double x() const noexcept { return x_; }
 	[[nodiscard]] constexpr double y() const noexcept { return y_; }
