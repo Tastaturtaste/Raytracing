@@ -1,0 +1,33 @@
+﻿Build started 25/04/2020 19:03:07.
+Logging verbosity is set to: Normal.     1>Project "I:\dev\Raytracing\TracerTest\TracerTest.vcxproj" on node 2 (Build target(s)).
+     1>InitializeBuildStatus:
+         Touching "x64\Release\TracerTest.tlog\unsuccessfulbuild".
+       VcpkgTripletSelection:
+         Using triplet "x64-windows" from "I:\dev\vcpkg\installed\x64-windows\"
+       ClCompile:
+         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\HostX86\x64\CL.exe /c /I"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\UnitTest\include" /II:\dev\Raytracing\Raytracer/util/ /II:\dev\Raytracing\Raytracer/src /I"I:\dev\vcpkg\installed\x64-windows\include" /Zi /nologo /W3 /WX- /diagnostics:column /sdl /O2 /Oi /GL /D NDEBUG /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++latest /Yu"pch.h" /Fp"x64\Release\TracerTest.pch" /Fo"x64\Release\\" /Fd"x64\Release\vc142.pdb" /Gd /TP /FC /errorReport:prompt SphereTest.cpp VecTest.cpp
+         SphereTest.cpp
+         VecTest.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\HostX86\x64\link.exe /ERRORREPORT:PROMPT /OUT:"I:\dev\Raytracing\x64\Release\TracerTest.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\UnitTest\lib" /LIBPATH:"I:\dev\vcpkg\installed\x64-windows\lib" /LIBPATH:"I:\dev\vcpkg\installed\x64-windows\lib\manual-link" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib "I:\dev\vcpkg\installed\x64-windows\lib\*.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG:FULL /PDB:"I:\dev\Raytracing\x64\Release\TracerTest.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"I:\dev\Raytracing\x64\Release\TracerTest.lib" /MACHINE:X64 /DLL x64\Release\IntersectionTest.obj
+         x64\Release\Norm3Test.obj
+         x64\Release\pch.obj
+         x64\Release\SphereTest.obj
+         x64\Release\VecTest.obj
+            Creating library I:\dev\Raytracing\x64\Release\TracerTest.lib and object I:\dev\Raytracing\x64\Release\TracerTest.exp
+     1>SphereTest.obj : error LNK2001: unresolved external symbol "public: class std::optional<struct IntersectionTrace> __cdecl Sphere::intersect(class Ray const &)const " (?intersect@Sphere@@QEBA?AV?$optional@UIntersectionTrace@@@std@@AEBVRay@@@Z)
+     1>I:\dev\Raytracing\x64\Release\TracerTest.dll : fatal error LNK1120: 1 unresolved externals
+     1>Done Building Project "I:\dev\Raytracing\TracerTest\TracerTest.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+       "I:\dev\Raytracing\TracerTest\TracerTest.vcxproj" (Build target) (1) ->
+       (Link target) -> 
+         SphereTest.obj : error LNK2001: unresolved external symbol "public: class std::optional<struct IntersectionTrace> __cdecl Sphere::intersect(class Ray const &)const " (?intersect@Sphere@@QEBA?AV?$optional@UIntersectionTrace@@@std@@AEBVRay@@@Z)
+         I:\dev\Raytracing\x64\Release\TracerTest.dll : fatal error LNK1120: 1 unresolved externals
+
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.07

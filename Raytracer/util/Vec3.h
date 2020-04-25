@@ -40,7 +40,7 @@ public:
 	}
 	[[nodiscard]] constexpr Vec3 operator-() { return Vec3(-x_, -y_, -z_); }
 
-	[[nodiscard]] constexpr Vec3 transform(const std::array<Norm3, 3> basis);
+	[[nodiscard]] constexpr Vec3 transform(const std::array<Norm3, 3> basis) const ;
 
 	[[nodiscard]] constexpr double x() const noexcept { return x_; }
 	[[nodiscard]] constexpr double y() const noexcept { return y_; }

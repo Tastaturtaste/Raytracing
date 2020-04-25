@@ -19,6 +19,6 @@ constexpr Vec3 Vec3::cross(const Norm3& v) const noexcept {
     return cross(Vec3(v));
 }
 
-constexpr Vec3 Vec3::transform(const std::array<Norm3, 3> basis) {
+constexpr Vec3 Vec3::transform(const std::array<Norm3, 3> basis) const {
     return basis[0] * x_ + basis[1] * y_ + basis[2] * z_;
 }
