@@ -14,6 +14,7 @@
 #include <mutex>
 #include "Scene.h"
 #include "IntersectionTrace.h"
+#include "RenderParams.h"
 #include "pngwriter.h"
 #include "spdlog\spdlog.h"
 
@@ -56,14 +57,6 @@ std::optional<IntersectionTrace> find_nearest(const Scene& scene, const Ray& r) 
 	return nearest;
 }
 
-struct RenderParams {
-	std::size_t numUSamples{ 4 };
-	std::size_t numVSamples{ 4 };
-	bool preview{ false };
-	unsigned int max_depth{ 5 };
-	unsigned int samplesPerPixel{ 200 };
-};
-
 struct CameraParams {
 	double viewAngle{ 0.25 * constants::pi };
 };
@@ -80,7 +73,7 @@ Color radiance(const Ray& r, const Scene& scene, std::mt19937& rnd, const Render
 		return {};
 	IntersectionTrace nearest{};
 	if (auto maybe_nearest = find_nearest(scene, r); !maybe_nearest.has_value()) {
-		spdlog::info("No intersection found!");
+		//spdlog::info("No intersection found!");
 		return {};
 	}
 	else {
@@ -118,6 +111,7 @@ Color radiance(const Ray& r, const Scene& scene, std::mt19937& rnd, const Render
 			convolute(result, nearest.material.diffuse_color());
 	}
 	else {
+		//const Norm3 outbound = nearest.normal.reflect(r.direction());
 		const Norm3 outbound = hemispheresample(nearest.normal.reflect(r.direction()), uni(rnd)*5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);
 		return nearest.material.light_color() +
 			convolute(
@@ -162,7 +156,7 @@ int main(int argc, char* argv[]) {
 		,.numVSamples{4}
 		,.preview{false}
 		,.max_depth{5}
-		,.samplesPerPixel{100}
+		,.samplesPerPixel{500}
 	};
 	const CameraParams camParams{};
 
@@ -192,10 +186,12 @@ int main(int argc, char* argv[]) {
 	else {
 		std::vector<std::future<Color>> results(maxx*maxy);
 		assert(("array of pixels and array of futures are not of same length!",pixels.size() == results.size()));
-
+		std::random_device r_device;
+		unsigned int seed = r_device();
 		for (std::size_t y = 0; y < maxy; ++y) {
 			for (std::size_t x = 0; x < maxx; ++x) {
-				results[y * maxx + x] = std::async(std::launch::async, job, x, y, rng);
+				results[y * maxx + x] = std::async(std::launch::async, job, x, y, std::mt19937(seed + y * maxx + x));
+				//std::mt19937(r_device()+y*maxx + x)
 			}
 		}
 		const auto lastco = counter.get() / (maxx * maxy);

@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\IntersectionTrace.h" />
+    <ClInclude Include="src\RenderParams.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\Color.h" />
     <ClInclude Include="src\Material.h" />
