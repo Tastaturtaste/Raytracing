@@ -3,3 +3,4 @@
 **/*.ruleset
 **/bin
 **/bin-int
+**/*.png

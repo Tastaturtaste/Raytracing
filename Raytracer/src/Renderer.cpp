@@ -75,7 +75,7 @@ auto Renderer::generatePixelJob(std::size_t x, std::size_t y) {
 		Color c{};
 		Ray r{};
 		for (unsigned int s = 0; s < renderParams_.samplesPerPixel; ++s) {
-			r = Ray({ (x + uni(rnd)) * x_rezi,(y + uni(rnd)) * y_rezi,0.05 }, dir);
+			r = Ray({ (x + uni(rnd)) * normalizer_,(y + uni(rnd)) * normalizer_,0.05 }, dir);
 			c += radiance(r, rnd, 0) / renderParams_.samplesPerPixel;
 		}
 		c = clamp(c, 0.0, 1.0);

@@ -20,6 +20,7 @@ class Renderer
 	const RenderParams renderParams_;
 	const std::size_t maxx_;
 	const std::size_t maxy_;
+	const double normalizer_;
 	std::vector<Color> pixels_;
 	Camera cam_;
 	mutable Counter counter_;
@@ -31,7 +32,7 @@ class Renderer
 
 public:
 	Renderer(Scene&& scene, const RenderParams& renderParams, std::size_t maxx, std::size_t maxy, bool multithread)
-		: scene_(std::move(scene)), renderParams_(renderParams), maxx_(maxx), maxy_(maxy), pixels_(std::vector<Color>(maxx* maxy)), cam_(Camera(maxx, maxy, renderParams.FOV)), counter_(Counter()), multithread_(multithread) {}
+		: scene_(std::move(scene)), renderParams_(renderParams), maxx_(maxx), maxy_(maxy), normalizer_(1./maxx), pixels_(std::vector<Color>(maxx* maxy)), cam_(Camera(maxx, maxy, renderParams.FOV)), counter_(Counter()), multithread_(multithread) {}
 
 	std::vector<Color> render();
 	std::size_t percentRendered();
