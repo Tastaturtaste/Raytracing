@@ -40,17 +40,9 @@ public:
 	[[nodiscard]] static constexpr Norm3 yAxis() { return Norm3( 0, 1, 0 ); }
 	[[nodiscard]] static constexpr Norm3 zAxis() { return Norm3( 0, 0, 1 ); }
 
-	[[nodiscard]] Norm3 rotate(const Norm3& u, double alpha) noexcept {
-		// https://en.wikipedia.org/wiki/Rotation_matrix
-		const auto x = *this;
-		return (u * u.dot(x) + cos(alpha) * u.cross(x).cross(u) + sin(alpha) * u.cross(x)).norm();
-	}
+	[[nodiscard]] Norm3 rotate(const Norm3& rotationAxis, double alpha) noexcept;
 
-	[[nodiscard]] static std::pair<Norm3, Norm3> orthogonal_from_z(Norm3 z) noexcept {
-		auto x = (Norm3::xAxis().dot(z) < 1-constants::EPS ? Norm3::xAxis() : Norm3::yAxis()).cross(z).norm();
-		auto y = z.cross(x).norm();
-		return { x,y };
-	}
+	[[nodiscard]] static std::pair<Norm3, Norm3> orthogonal_from_z(Norm3 z) noexcept;
 
 	[[nodiscard]] static inline Norm3 knownNormal(double x, double y, double z) noexcept {
 		// only use if you are sure the result of the construction is normal

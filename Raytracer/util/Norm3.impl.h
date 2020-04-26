@@ -1,6 +1,5 @@
 #pragma once
 #include "Vec3.h"
-#include "Norm3.h"
 
 constexpr Norm3::Norm3(const Vec3& v) 
     : x_(v.x()), y_(v.y()), z_(v.z()) {}
@@ -22,6 +21,18 @@ constexpr Vec3 Norm3::cross(const Norm3& v) const noexcept {
 constexpr Norm3 Norm3::reflect(const Norm3& incoming) const noexcept {
     // We know by construction that the result of this operation is a normal. Says Matt.
     return Norm3(incoming.toVec3() - toVec3() * 2 * dot(incoming));
+}
+
+inline Norm3 Norm3::rotate(const Norm3& rotationAxis, double alpha) noexcept {
+    // https://en.wikipedia.org/wiki/Rotation_matrix
+    const auto x = *this;
+    return (rotationAxis * rotationAxis.dot(x) + cos(alpha) * rotationAxis.cross(x).cross(rotationAxis) + sin(alpha) * rotationAxis.cross(x)).norm();
+}
+
+inline std::pair<Norm3, Norm3> Norm3::orthogonal_from_z(Norm3 z) noexcept {
+    auto x = (Norm3::xAxis().dot(z) < 1 - constants::EPS ? Norm3::xAxis() : Norm3::yAxis()).cross(z).norm();
+    auto y = z.cross(x).norm();
+    return { x,y };
 }
 
 constexpr Vec3 operator*(double lhs, Norm3& rhs) noexcept { return Vec3(rhs).scale(lhs); }

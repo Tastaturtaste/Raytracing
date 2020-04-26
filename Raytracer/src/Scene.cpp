@@ -34,7 +34,7 @@ Scene Scene::hull_sphere()
 {
 	return Scene({
 	Sphere(Vec3(0.5,		0.5,	0.5),		2.0, Material::grey_diffuse()),		// wall
-	Sphere(Vec3(0.1,		0.85,	-0.2),		0.1, Material::white_light(200.0)),	// lightsource
+	Sphere(Vec3(0.1,		0.85,	-0.2),		0.1, Material::white_light(100.0)),	// lightsource
 	Sphere(Vec3(0.7,		0.2,	0.5),		0.2, Material::green_diffuse()),	// green sphere
 	Sphere(Vec3(0.2,		0.2,	0.7),		0.2, Material::red_shiny()),		// shine red sphere
 	Sphere(Vec3(0.5,		0.5,	0.8),		0.2, Material::mirror())			// mirror sphere
