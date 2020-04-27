@@ -17,9 +17,9 @@ std::optional<IntersectionTrace> Sphere::intersect(const Ray& r) const noexcept 
 
 	const auto t = minusT > constants::EPS ? minusT : plusT;
 	const auto hitPosition = r.positionAlong(t);
-	auto normal = this->getNormal(hitPosition);
+	auto normal = this->normal(hitPosition);
 	const bool inside = normal.dot(r.direction()) > 0;
 	if (inside)
 		normal = -normal;
-	return IntersectionTrace(inside, normal, hitPosition, t, mat_);
+	return IntersectionTrace(inside, normal, hitPosition, t, material());
 }

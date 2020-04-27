@@ -17,7 +17,7 @@ class Camera {
 
 	template<typename Rnd_dev>
 	[[nodiscard]] std::pair<double, double> normalizeCanvas(unsigned int pixX, unsigned int pixY, Rnd_dev rnd) {
-		std::uniform_real_distribution uni;
+		const std::uniform_real_distribution uni;
 		const double x = (pixX + uni(rnd)) / width_;
 		const double y = (pixY + uni(rnd)) / height_;
 		return { (2*x-1.0),(2*y-1.0) };

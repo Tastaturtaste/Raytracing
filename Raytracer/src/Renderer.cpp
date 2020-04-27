@@ -4,6 +4,8 @@
 #include <vector>
 #include <future>
 #include <random>
+#include <chrono>
+#include "Timer.h"
 #include "spdlog\spdlog.h"
 
 Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
@@ -117,6 +119,13 @@ std::vector<Color> Renderer::render() {
 		}
 	};
 
-	multithread_ ? renderMultiThread() : renderSingleThread();
+	int64_t time{};
+	{
+		auto timer{ Timer<std::chrono::milliseconds>(&time) };
+		multithread_ ? renderMultiThread() : renderSingleThread();
+	}
+	
+	spdlog::info("Rendering took {} Seconds.", time * 1./1000);
+
 	return pixels_;
 }

@@ -24,7 +24,7 @@ Scene Scene::basic_scene()
 	Sphere(Vec3(0.5,		1e5,	0.5),		1e5, Material::grey_diffuse()),		// floor
 	Sphere(Vec3(0.5,		0.5,	-1e5+1),	1e5, Material::grey_diffuse()),		// backwall
 	Sphere(Vec3(0.5,		0.5,	1e5),		1e5, Material::grey_diffuse()),		// frontwall
-	Sphere(Vec3(0.1,		0.85,	0.2),		0.1, Material::white_light(20.0)),	// lightsource
+	Sphere(Vec3(0.2,		0.85,	0.2),		0.1, Material::white_light(20.0)),	// lightsource
 	Sphere(Vec3(0.7,		0.2,	0.5),		0.2, Material::green_diffuse()),	// green sphere
 	Sphere(Vec3(0.2,		0.2,	0.7),		0.2, Material::red_shiny())			// shine red sphere
 	});
