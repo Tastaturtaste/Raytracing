@@ -2,6 +2,7 @@
 #include <tuple>
 #include "Constants.h"
 #include <cmath>
+#include <array>
 #include <cassert>
 
 class Vec3;
@@ -42,7 +43,9 @@ public:
 
 	[[nodiscard]] Norm3 rotate(const Norm3& rotationAxis, double alpha) noexcept;
 
-	[[nodiscard]] static std::pair<Norm3, Norm3> orthogonal_from_z(Norm3 z) noexcept;
+	[[nodiscard]] static std::pair<Norm3, Norm3> orthogonal_from_z(const Norm3& z) noexcept;
+	[[nodiscard]] static std::array<Norm3, 3> orthogonalFromYZ(const Norm3& y, const Norm3& z) noexcept;
+	[[nodiscard]] static std::array<Norm3, 3> orthogonalFromZY(const Norm3& z, const Norm3& y) noexcept;
 
 	[[nodiscard]] static inline Norm3 knownNormal(double x, double y, double z) noexcept {
 		// only use if you are sure the result of the construction is normal

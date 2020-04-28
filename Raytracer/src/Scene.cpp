@@ -17,13 +17,14 @@ std::optional<IntersectionTrace> Scene::find_nearest(const Ray& r) const noexcep
 
 Scene Scene::basic_scene()
 {
+	constexpr double greyval = 0.6;
 	return Scene({
-	Sphere(Vec3(1e5,		0.5,	0.5),		1e5, Material::grey_diffuse()),		// left wall
-	Sphere(Vec3(-1e5+1.0,	0.5,	0.5),		1e5, Material::grey_diffuse()),		// right wall
-	Sphere(Vec3(0.5,		-1e5+1,	0.5),		1e5, Material::grey_diffuse()),		// ceiling
-	Sphere(Vec3(0.5,		1e5,	0.5),		1e5, Material::grey_diffuse()),		// floor
-	Sphere(Vec3(0.5,		0.5,	-1e5+1),	1e5, Material::grey_diffuse()),		// backwall
-	Sphere(Vec3(0.5,		0.5,	1e5),		1e5, Material::grey_diffuse()),		// frontwall
+	Sphere(Vec3(1e5,		0.5,	0.5),		1e5, Material::grey_diffuse(greyval)),		// left wall
+	Sphere(Vec3(-1e5+1.0,	0.5,	0.5),		1e5, Material::grey_diffuse(greyval)),		// right wall
+	Sphere(Vec3(0.5,		-1e5+1,	0.5),		1e5, Material::grey_diffuse(greyval)),		// ceiling
+	Sphere(Vec3(0.5,		1e5,	0.5),		1e5, Material::grey_diffuse(greyval)),		// floor
+	Sphere(Vec3(0.5,		0.5,	-1e5+1),	1e5, Material::grey_diffuse(greyval)),		// backwall
+	Sphere(Vec3(0.5,		0.5,	1e5),		1e5, Material::grey_diffuse(greyval)),		// frontwall
 	Sphere(Vec3(0.2,		0.85,	0.2),		0.1, Material::white_light(20.0)),	// lightsource
 	Sphere(Vec3(0.7,		0.2,	0.5),		0.2, Material::green_diffuse()),	// green sphere
 	Sphere(Vec3(0.2,		0.2,	0.7),		0.2, Material::red_shiny())			// shine red sphere
@@ -32,11 +33,23 @@ Scene Scene::basic_scene()
 
 Scene Scene::hull_sphere()
 {
+	constexpr double greyval = 0.6;
 	return Scene({
-	Sphere(Vec3(0.5,		0.5,	0.5),		2.0, Material::grey_diffuse()),		// wall
+	Sphere(Vec3(0.5,		0.5,	0.5),		2.0, Material::grey_diffuse(greyval)),		// wall
 	Sphere(Vec3(0.1,		0.85,	-0.2),		0.1, Material::white_light(100.0)),	// lightsource
 	Sphere(Vec3(0.7,		0.2,	0.5),		0.2, Material::green_diffuse()),	// green sphere
 	Sphere(Vec3(0.2,		0.2,	0.7),		0.2, Material::red_shiny()),		// shine red sphere
 	Sphere(Vec3(0.5,		0.5,	0.8),		0.2, Material::mirror())			// mirror sphere
+		});
+}
+
+Scene Scene::debug_scene()
+{
+	return Scene({
+		Sphere(Vec3(0.5,0.5,0.5),	0.1,	Material::white_light(20.0)),		// lightsource in the middle of scene
+		Sphere(Vec3(0.2,0.5,0.5),	0.1,	Material::grey_diffuse(0.5)),			// gray sphere left
+		Sphere(Vec3(0.8,0.5,0.5),	0.1,	Material::grey_diffuse(0.6)),			// gray sphere right
+		Sphere(Vec3(0.5,0.2,0.5),	0.1,	Material::grey_diffuse(0.7)),			// gray sphere bottom
+		Sphere(Vec3(0.5,0.8,0.5),	0.1,	Material::grey_diffuse(0.8))			// gray sphere top
 		});
 }

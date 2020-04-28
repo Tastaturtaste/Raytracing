@@ -65,19 +65,20 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 }
 
 auto Renderer::generatePixelJob(std::size_t x, std::size_t y) {
-	const auto x_rezi = 1. / maxx_;
-	const auto y_rezi = 1. / maxy_;
+	/*const auto x_rezi = 1. / renderParams_.sizeX;
+	const auto y_rezi = 1. / renderParams_.sizeY;*/
 	std::random_device r_device;
-	const unsigned int seed = r_device();
-	auto rnd = std::mt19937(seed + y * maxx_ + x);
-	const Norm3 dir = cam_.getRayDirection(x, y, rnd);
-	const auto uni = std::uniform_real_distribution(0.0, 1.0);
-	return [this, x_rezi, y_rezi, uni, rnd, dir, x, y]
-	() mutable {
+	const unsigned int seed = r_device() + y * renderParams_.sizeX + x;
+	
+	/*const Norm3 dir = cam_.getRayDirection(x, y, rnd);
+	const auto uni = std::uniform_real_distribution(0.0, 1.0);*/
+	return [&,seed,x,y](){
+		auto rnd = std::mt19937(seed + y * renderParams_.sizeX + x);
 		Color c{};
 		Ray r{};
 		for (unsigned int s = 0; s < renderParams_.samplesPerPixel; ++s) {
-			r = Ray({ (x + uni(rnd)) * normalizer_,(y + uni(rnd)) * normalizer_,0.05 }, dir);
+			//r = Ray({ 0.5,0.5,0.05 }, cam_.getRayDirection(x, y, rnd));
+			r = cam_.getRay(x, y, rnd);
 			c += radiance(r, rnd, 0) / renderParams_.samplesPerPixel;
 		}
 		c = clamp(c, 0.0, 1.0);
@@ -91,9 +92,9 @@ std::size_t Renderer::percentRendered() {
 std::vector<Color> Renderer::render() {
 
 	const auto renderSingleThread = [&]() {
-		for (std::size_t y = 0; y < maxy_; ++y) {
-			for (std::size_t x = 0; x < maxx_; ++x) {
-				pixels_[y * maxx_ + x] = generatePixelJob(x, y)();
+		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
+			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
+				pixels_[y * renderParams_.sizeX + x] = generatePixelJob(x, y)();
 			}
 		}
 	};
@@ -101,9 +102,9 @@ std::vector<Color> Renderer::render() {
 	const auto renderMultiThread = [&]() {
 		std::vector<std::future<Color>> results(pixels_.size());
 
-		for (std::size_t y = 0; y < maxy_; ++y) {
-			for (std::size_t x = 0; x < maxx_; ++x) {
-				results[y * maxx_ + x] = std::async(std::launch::async, generatePixelJob(x, y));
+		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
+			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
+				results[y * renderParams_.sizeX + x] = std::async(std::launch::async, generatePixelJob(x, y));
 			}
 		}
 		auto pct = percentRendered();

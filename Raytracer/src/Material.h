@@ -22,8 +22,7 @@ public:
 	static Material green_diffuse() noexcept { return Material({ 0.2,0.8,0.2 }, { 0.2,0.8,0.2 }, {}, 0.9f); }
 	static Material red_shiny() noexcept { return Material({ 0.8,0.2,0.2 }, { 0.8,0.2,0.2 }, {}, 0.1f); }
 	static Material mirror() noexcept { return Material({ 0.999,0.999,0.999 }, { 0.999,0.999,0.999 }, {}, 0.0f); }
-	static Material grey_diffuse() noexcept { 
-		constexpr double greyVal{ 0.6 }; 
+	static Material grey_diffuse(double greyVal) noexcept { 
 		return Material({ greyVal, greyVal, greyVal }, { greyVal,greyVal,greyVal }, {}, 1.0f); 
 	}
 };

@@ -29,11 +29,22 @@ inline Norm3 Norm3::rotate(const Norm3& rotationAxis, double alpha) noexcept {
     return (rotationAxis * rotationAxis.dot(x) + cos(alpha) * rotationAxis.cross(x).cross(rotationAxis) + sin(alpha) * rotationAxis.cross(x)).norm();
 }
 
-inline std::pair<Norm3, Norm3> Norm3::orthogonal_from_z(Norm3 z) noexcept {
+inline std::pair<Norm3, Norm3> Norm3::orthogonal_from_z(const Norm3& z) noexcept {
     auto x = (Norm3::xAxis().dot(z) < 1 - constants::EPS ? Norm3::xAxis() : Norm3::yAxis()).cross(z).norm();
     auto y = z.cross(x).norm();
     return { x,y };
 }
+inline std::array<Norm3, 3> Norm3::orthogonalFromYZ(const Norm3& y, const Norm3& z) noexcept {
+    const auto x = y.cross(z).norm();
+    const auto zz = Norm3::knownNormal(x.cross(y));
+    return { x,y,zz };
+}
 
-constexpr Vec3 operator*(double lhs, Norm3& rhs) noexcept { return Vec3(rhs).scale(lhs); }
+inline std::array<Norm3, 3> Norm3::orthogonalFromZY(const Norm3& z, const Norm3& y) noexcept {
+    const auto x = y.cross(z).norm();
+    const auto yy = Norm3::knownNormal(z.cross(x));
+    return { x,yy,z };
+}
+
+constexpr Vec3 operator*(double lhs, const Norm3& rhs) noexcept { return Vec3(rhs).scale(lhs); }
 constexpr Vec3 Norm3::operator*(double rhs) const noexcept { return Vec3(*this).scale(rhs); }
