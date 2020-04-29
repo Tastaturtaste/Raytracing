@@ -175,10 +175,7 @@
     <ClInclude Include="util\loadScene.h" />
     <ClInclude Include="util\Norm3.h" />
     <ClInclude Include="src\Ray.h" />
-    <ClInclude Include="util\Norm3.impl.h" />
     <ClInclude Include="util\Timer.h" />
-    <ClInclude Include="util\Vec3.h" />
-    <ClInclude Include="util\Vec3.impl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

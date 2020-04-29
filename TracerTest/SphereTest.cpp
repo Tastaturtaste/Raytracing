@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "Vec3.h"
+#include <glm\glm.hpp>
 #include "Sphere.h"
 #include "Scene.h"
 #include <random>
@@ -19,10 +19,10 @@ namespace TracerTest
 
 		TEST_METHOD(TestIntersect)
 		{
-			Vec3 c = { 0.0,0.0,0.0 };
+			glm::dvec3 c = { 0.0,0.0,0.0 };
 			std::vector<Sphere> spheres({ Sphere(c,1.0,Material::green_diffuse()) });
-			Vec3 o = { 2,2,2 };
-			Norm3 d = (c - o).norm();
+			glm::dvec3 o = { 2,2,2 };
+			norm3 d = norm3(c - o);
 			Ray r = { o,d };
 			Scene scene(spheres);
 			auto inter = scene.spheres().at(0).intersect(r);

@@ -1,11 +1,12 @@
 #pragma once
-#include "Norm3.h"
+#include <array>
+#include "norm3.h"
 
 namespace samples {
 
-	Norm3 hemispheresampleCosWeighted(Norm3 normal, double u, double v) noexcept;
+	norm3 hemispheresampleCosWeighted(const std::array<norm3,3>& basis, double u, double v) ;
 
-	Norm3 hemispheresampleUniform(Norm3 normal, double aroundX, double aroundZ) noexcept;
+	//norm3 hemispheresampleUniform(norm3 normal, double aroundX, double aroundZ) noexcept;
 
-	Norm3 conesampleCosWeighted(Norm3 normal, double coneAngle, double u, double v) noexcept;
+	norm3 conesampleCosWeighted(const std::array<norm3, 3>& basis, double coneAngle, double u, double v) ;
 }

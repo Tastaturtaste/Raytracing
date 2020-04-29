@@ -35,16 +35,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="util\Vec3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="util\Norm3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="util\Vec3.impl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="util\Norm3.impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="util\Constants.h">

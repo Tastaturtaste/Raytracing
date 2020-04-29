@@ -2,7 +2,7 @@
 #include "Material.h"
 #include "IntersectionTrace.h"
 #include <optional>
-#include "Vec3.h"
+#include <glm\vec3.hpp>
 #include "Ray.h"
 
 class Primitive {
@@ -16,6 +16,6 @@ public:
 	virtual ~Primitive() = default;
 	
 	constexpr Material material() const noexcept { return mat_; }
-	virtual Norm3 normal(Vec3 hitPos) const noexcept = 0;
+	virtual norm3 normal(glm::dvec3 hitPos) const = 0;
 	virtual std::optional<IntersectionTrace> intersect(const Ray&) const = 0;
 };

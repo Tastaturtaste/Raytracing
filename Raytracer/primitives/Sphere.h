@@ -2,25 +2,25 @@
 #include "Material.h"
 #include "IntersectionTrace.h"
 #include <optional>
-#include "Vec3.h"
+#include <glm\vec3.hpp>
 #include "Ray.h"
 #include "Primitive.h"
 
 class Sphere : public Primitive
 {
-	Vec3 origin_{};
+	glm::dvec3 origin_{};
 	double radius_{};
 	//Material mat_;
 public:
-	constexpr Sphere(Vec3 origin, double radius, Material mat) noexcept
+	constexpr Sphere(glm::dvec3 origin, double radius, Material mat)
 		: Primitive{ mat }, origin_(origin), radius_(radius) {}
 	constexpr auto origin() const noexcept { return origin_; }
-	constexpr auto radius() const noexcept { return radius_; }
+	constexpr auto radius() const { return radius_; }
 	//constexpr auto material() const noexcept { return mat_; }
-	Norm3 normal(Vec3 hitPos) const noexcept override { 
-		return Norm3::knownNormal((hitPos - origin_) / radius_); 
+	norm3 normal(glm::dvec3 hitPos) const override { 
+		return norm3(hitPos - origin_); 
 	}
 
-	std::optional<IntersectionTrace> intersect(const Ray& r) const noexcept override;
+	std::optional<IntersectionTrace> intersect(const Ray& r) const override;
 };
 

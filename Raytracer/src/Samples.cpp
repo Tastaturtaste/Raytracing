@@ -1,37 +1,41 @@
 #include "Samples.h"
-#include <tuple>
 #include <cmath>
+#include <glm\glm.hpp>
 
 namespace samples {
 
-	Norm3 hemispheresampleCosWeighted(Norm3 normal, double u, double v) noexcept {
-		const auto xy = Norm3::orthogonal_from_z(normal);
-		const auto x = xy.first;
-		const auto y = xy.second;
+	norm3 transform(const std::array<norm3, 3>& basis, const glm::dvec3& vec) {
+		return norm3(basis[0].getVec() * vec.x + basis[1].getVec() * vec.y + basis[2].getVec() * vec.z);
+	}
+
+	norm3 hemispheresampleCosWeighted(const std::array<norm3, 3>& basis, double u, double v)  {
+		//const auto xyz = norm3::orthogonalFromZ(normal);
+		//const auto x = xy[0];
+		//const auto y = xy[1];
 
 		const auto theta = 2 * constants::pi * u;
 		const auto radiusSquared = v;
-		const auto radius = sqrt(radiusSquared);
-		const auto sample = Vec3(cos(theta) * radius, sin(theta) * radius, sqrt(1 - radiusSquared));
-		return sample.transform({ x,y,normal }).norm();
+		const auto radius = glm::sqrt(radiusSquared);
+		const auto sample = glm::dvec3(glm::cos(theta) * radius, glm::sin(theta) * radius, glm::sqrt(1 - radiusSquared));
+		return transform(basis,sample);
 	}
 
-	Norm3 hemispheresampleUniform(Norm3 normal, double aroundX, double aroundZ) noexcept {
-		const auto xy = Norm3::orthogonal_from_z(normal);
-		const auto x = xy.first;
-		const auto y = xy.second;
-		return normal.rotate(x, aroundX).rotate(normal, aroundZ);
-	}
+	//norm3 hemispheresampleUniform(const norm3& normal, double aroundX, double aroundZ) noexcept {
+	//	const auto xyz = norm3::orthogonalFromZ(normal);
+	//	const auto x = xy[0];
+	//	const auto y = xy[1];
+	//	return normal.rotate(x, aroundX).rotate(normal, aroundZ);
+	//}
 
-	Norm3 conesampleCosWeighted(Norm3 normal, double coneAngle, double u, double v) noexcept {
-		const auto xy = Norm3::orthogonal_from_z(normal);
-		const auto x = xy.first;
-		const auto y = xy.second;
+	norm3 conesampleCosWeighted(const std::array<norm3, 3>& basis, double coneAngle, double u, double v)  {
+		//const auto xyz = norm3::orthogonalFromZ(normal);
+		//const auto x = xy[0];
+		//const auto y = xy[1];
 
 		const auto theta = 2 * constants::pi * u;
-		const auto radiusSquared = sin(coneAngle) * v;
-		const auto radius = sqrt(radiusSquared);
-		const auto sample = Vec3(cos(theta) * radius, sin(theta) * radius, sqrt(1 - radiusSquared));
-		return sample.transform({ x,y,normal }).norm();
+		const auto radiusSquared = glm::sin(coneAngle) * v;
+		const auto radius = glm::sqrt(radiusSquared);
+		const auto sample = glm::dvec3(glm::cos(theta) * radius, glm::sin(theta) * radius, glm::sqrt(1 - radiusSquared));
+		return transform(basis,sample);
 	}
 }

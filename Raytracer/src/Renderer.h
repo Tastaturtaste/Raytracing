@@ -28,12 +28,12 @@ class Renderer
 
 	Color radiance(const Ray& r, std::mt19937& rnd, unsigned int depth);
 
-	auto generatePixelJob(std::size_t x, std::size_t y);
+	auto generateRenderJob(std::size_t x, std::size_t y);
 
 public:
 	Renderer(Scene&& scene, const RenderParams& renderParams, bool multithread)
 		: scene_(std::move(scene)), renderParams_(renderParams), normalizer_(1. / renderParams.sizeX), pixels_(std::vector<Color>(renderParams.sizeX* renderParams.sizeY)),
-		cam_(Camera(renderParams.sizeX, renderParams.sizeY, { 0.5,0.5,0.05 }, { 0.5,0.5,0.5 }, renderParams.FOV)), counter_(Counter()), multithread_(multithread) {}
+		cam_(Camera(renderParams.sizeX, renderParams.sizeY, glm::dvec3( 0.5,0.05,0.5 ), glm::dvec3( 0.5,0.5,0.5 ),norm3::zAxis(), renderParams.FOV)), counter_(Counter()), multithread_(multithread) {}
 
 	std::vector<Color> render();
 	std::size_t percentRendered();

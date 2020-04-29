@@ -19,20 +19,22 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 	else {
 		nearest = maybe_nearest.value();
 	}
-
 	if (renderParams_.preview) {
 		const auto dif = nearest.material.diffuse_color();
 		const auto spec = nearest.material.specular_color();
 		const auto p = nearest.material.prob_diffuse();
-		return {
-			.r{std::lerp(spec.r,dif.r,static_cast<double>(p))},
-			.g{std::lerp(spec.g,dif.r,static_cast<double>(p))},
-			.b{std::lerp(spec.b,dif.b,static_cast<double>(p))}
-		};
+		return Color(
+			std::lerp(spec.r(),dif.r(),static_cast<double>(p)),
+			std::lerp(spec.g(),dif.r(),static_cast<double>(p)),
+			std::lerp(spec.b(),dif.b(),static_cast<double>(p))
+		);
 	}
+
+	
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
 	if (uni(rnd) < nearest.material.prob_diffuse())
 	{
+		const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest.normal);
 		Color result{};
 		const auto maxUSamples = depth < 1 ? renderParams_.numUSamples : 1;
 		const auto maxVSamples = depth < 1 ? renderParams_.numVSamples : 1;
@@ -40,7 +42,7 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 			for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
 				const double u = (uSample + uni(rnd)) / maxUSamples;
 				const double v = (vSample + uni(rnd)) / maxVSamples;
-				const Norm3 outbound = samples::hemispheresampleCosWeighted(nearest.normal, u, v);
+				const norm3 outbound = samples::hemispheresampleCosWeighted(base, u, v);
 
 				result += radiance(
 					Ray(nearest.hit_position, outbound),
@@ -52,9 +54,10 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 			convolute(result, nearest.material.diffuse_color());
 	}
 	else {
-		//const Norm3 outbound = nearest.normal.reflect(r.direction());
-		/*const Norm3 outbound = samples::hemispheresampleUniform(nearest.normal.reflect(r.direction()), uni(rnd) * 5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);*/
-		const Norm3 outbound = samples::conesampleCosWeighted(nearest.normal.reflect(r.direction()),5.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
+		//const norm3 outbound = nearest.normal.reflect(r.direction());
+		/*const norm3 outbound = samples::hemispheresampleUniform(nearest.normal.reflect(r.direction()), uni(rnd) * 5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);*/
+		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest.normal.getVec())));
+		const norm3 outbound = samples::conesampleCosWeighted(base,5.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
 
 		return nearest.material.light_color() +
 			convolute(
@@ -64,13 +67,13 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 	}
 }
 
-auto Renderer::generatePixelJob(std::size_t x, std::size_t y) {
+auto Renderer::generateRenderJob(std::size_t x, std::size_t y) {
 	/*const auto x_rezi = 1. / renderParams_.sizeX;
 	const auto y_rezi = 1. / renderParams_.sizeY;*/
 	std::random_device r_device;
 	const unsigned int seed = r_device() + y * renderParams_.sizeX + x;
 	
-	/*const Norm3 dir = cam_.getRayDirection(x, y, rnd);
+	/*const norm3 dir = cam_.getRayDirection(x, y, rnd);
 	const auto uni = std::uniform_real_distribution(0.0, 1.0);*/
 	return [&,seed,x,y](){
 		auto rnd = std::mt19937(seed + y * renderParams_.sizeX + x);
@@ -94,7 +97,7 @@ std::vector<Color> Renderer::render() {
 	const auto renderSingleThread = [&]() {
 		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
 			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
-				pixels_[y * renderParams_.sizeX + x] = generatePixelJob(x, y)();
+				pixels_[y * renderParams_.sizeX + x] = generateRenderJob(x, y)();
 			}
 		}
 	};
@@ -104,7 +107,7 @@ std::vector<Color> Renderer::render() {
 
 		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
 			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
-				results[y * renderParams_.sizeX + x] = std::async(std::launch::async, generatePixelJob(x, y));
+				results[y * renderParams_.sizeX + x] = std::async(std::launch::async, generateRenderJob(x, y));
 			}
 		}
 		auto pct = percentRendered();

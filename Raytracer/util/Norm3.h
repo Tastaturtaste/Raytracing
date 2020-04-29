@@ -1,69 +1,81 @@
 #pragma once
-#include <tuple>
 #include "Constants.h"
 #include <cmath>
 #include <array>
 #include <cassert>
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtx\rotate_vector.hpp>
 
-class Vec3;
-
-class Norm3
+class norm3
 {
-	double x_{};
-	double y_{};
-	double z_{};
+	glm::dvec3 vec_;
 
-	friend class Vec3;
+	constexpr explicit norm3(double x, double y, double z)
+		: vec_{ x,y,z } {};
+	constexpr operator glm::dvec3() const { return glm::dvec3(vec_); }
 
-	constexpr explicit Norm3(const Vec3& v);
-	constexpr explicit Norm3(double x, double y, double z) noexcept
-		: x_(x), y_(y), z_(z) {}
+	constexpr static norm3 knownNormal(const glm::dvec3& vec) { return norm3(vec.x,vec.y,vec.z); }
+
 public:
-	[[nodiscard]] constexpr Vec3 toVec3() const noexcept;
-	[[nodiscard]] constexpr Norm3 reflect(const Norm3& incoming) const noexcept;
-	[[nodiscard]] constexpr double dot(const Vec3& v) const noexcept;
-	[[nodiscard]] constexpr double dot(const Norm3& v) const noexcept;
-	[[nodiscard]] constexpr Vec3 cross(const Vec3& v) const noexcept;
-	[[nodiscard]] constexpr Vec3 cross(const Norm3& v) const noexcept;
+	explicit norm3(const glm::dvec3& v)
+		: vec_{ glm::normalize(v) } {};
 
-	[[nodiscard]] friend constexpr Vec3 operator*(double lhs, const Norm3& rhs) noexcept;
-	[[nodiscard]] constexpr Vec3 operator*(double rhs) const noexcept;
+	[[nodiscard]] constexpr glm::dvec3 getVec() const { return vec_; }
 
-	[[nodiscard]] constexpr Norm3 operator-() { 
-		return Norm3(-x_, -y_, -z_); 
+	[[nodiscard]] constexpr norm3 operator-() { 
+		return knownNormal(-vec_);
 	}
 
-	[[nodiscard]] constexpr double x() const noexcept { return x_; }
-	[[nodiscard]] constexpr double y() const noexcept { return y_; }
-	[[nodiscard]] constexpr double z() const noexcept { return z_; }
+	[[nodiscard]] constexpr glm::dvec3 operator+(const norm3& rhs) const noexcept { return vec_ + rhs.vec_; }
+	[[nodiscard]] constexpr glm::dvec3 operator+(const glm::dvec3& rhs) const noexcept { return vec_ + rhs; }
 
-	[[nodiscard]] static constexpr Norm3 xAxis() { return Norm3( 1, 0, 0 ); }
-	[[nodiscard]] static constexpr Norm3 yAxis() { return Norm3( 0, 1, 0 ); }
-	[[nodiscard]] static constexpr Norm3 zAxis() { return Norm3( 0, 0, 1 ); }
+	[[nodiscard]] constexpr double x() const noexcept { return vec_.x; }
+	[[nodiscard]] constexpr double y() const noexcept { return vec_.y; }
+	[[nodiscard]] constexpr double z() const noexcept { return vec_.z; }
 
-	[[nodiscard]] Norm3 rotate(const Norm3& rotationAxis, double alpha) noexcept;
+	[[nodiscard]] static constexpr norm3 xAxis() { return norm3( 1.0, 0.0, 0.0); }
+	[[nodiscard]] static constexpr norm3 yAxis() { return norm3( 0.0, 1.0, 0.0); }
+	[[nodiscard]] static constexpr norm3 zAxis() { return norm3( 0.0, 0.0, 1.0 ); }
 
-	[[nodiscard]] static std::pair<Norm3, Norm3> orthogonal_from_z(const Norm3& z) noexcept;
-	[[nodiscard]] static std::array<Norm3, 3> orthogonalFromYZ(const Norm3& y, const Norm3& z) noexcept;
-	[[nodiscard]] static std::array<Norm3, 3> orthogonalFromZY(const Norm3& z, const Norm3& y) noexcept;
+	[[nodiscard]] norm3 rotate(const norm3& rotationAxis, double alpha) { return knownNormal(glm::rotate(vec_, alpha, rotationAxis.vec_)); };
 
-	[[nodiscard]] static inline Norm3 knownNormal(double x, double y, double z) noexcept {
-		// only use if you are sure the result of the construction is normal
-		#ifdef DEBUG
-		auto len = x * x + y * y + z * z;
-		assert(("Vector is not normal!",fabs(len-1) < constants::EPS))
-		#endif
-		return Norm3(x, y, z);
-	} 
-	[[nodiscard]] static inline Norm3 knownNormal(const Vec3& vec) noexcept {
-		// only use if you are sure the result of the construction is normal
-		#ifdef DEBUG
-		auto len = vec.lensq();
-		assert(("Vector is not normal!", fabs(len - 1) < constants::EPS))
-		#endif
-		return Norm3(vec);
+	inline static std::array<norm3,3> orthogonalFromZ(const norm3& z) {
+		const auto x = (abs(glm::dot(norm3::xAxis().vec_, z.vec_)) < 1.0 - constants::EPS ? norm3::xAxis() : norm3::yAxis()).vec_;
+		const auto y = glm::cross(z.vec_, x);
+		const auto xx = glm::normalize(glm::cross(y,z.vec_));
+		const auto yy = glm::normalize(y);
+		const double dotxz = glm::dot(xx, z.vec_);
+		const double dotyz = glm::dot(yy, z.vec_);
+		const double dotxy = glm::dot(xx, yy);
+		assert(std::abs(glm::dot(xx, z.vec_)) < constants::EPS);
+		assert(std::abs(glm::dot(yy, z.vec_)) < constants::EPS);
+		assert(std::abs(glm::dot(xx, yy)) < constants::EPS);	// put in unit tests
+		return { knownNormal(xx),knownNormal(yy),knownNormal(z.vec_) };
+	}
+	inline static std::array<norm3, 3> orthogonalFromYZ(const norm3& y, const norm3& z) {
+		const auto x = glm::normalize(glm::cross(y.vec_, z.vec_));
+		const auto zz = glm::normalize(glm::cross(x, y.vec_));
+		const double dotxz = glm::dot(x, z.vec_);
+		const double dotyz = glm::dot(y.vec_, zz);
+		const double dotxy = glm::dot(x, y.vec_);
+		assert(std::abs(glm::dot(x, zz)) < constants::EPS);
+		assert(std::abs(glm::dot(y.vec_, zz)) < constants::EPS);
+		assert(std::abs(glm::dot(x, y.vec_)) < constants::EPS);
+		return { knownNormal(x),knownNormal(y),knownNormal(zz) };
+	}
+
+	inline static std::array<norm3, 3> orthogonalFromZY(const norm3& z, const norm3& y) {
+		const auto x = glm::normalize(glm::cross(y.vec_, z.vec_));
+		const auto yy = glm::normalize(glm::cross(z.vec_, x));
+		const double dotxz = glm::dot(x, z.vec_);
+		const double dotyz = glm::dot(yy, z.vec_);
+		const double dotxy = glm::dot(x, yy);
+		assert(std::abs(glm::dot(x, z.vec_)) < constants::EPS);
+		assert(std::abs(glm::dot(yy, z.vec_)) < constants::EPS);
+		assert(std::abs(glm::dot(x, yy)) < constants::EPS);
+		return { knownNormal(x),knownNormal(yy),knownNormal(z) };
 	}
 };
 
-#include "Norm3.impl.h"
 

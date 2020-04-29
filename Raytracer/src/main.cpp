@@ -24,12 +24,12 @@ int main(int argc, char* argv[]) {
 
 	// begin rendering
 
-	Renderer renderer(Scene::basic_scene(), renderParams, true);
+	Renderer renderer(Scene::debug_scene(), renderParams, true);
 	std::vector<Color> pixels = renderer.render();
 
 	for (std::size_t y = 0; y < maxy; ++y) {
 		for (std::size_t x = 0; x < maxx; ++x) {
-			png.plot(static_cast<int>(x), static_cast<int>(y), pixels.at(y * maxx + x).r, pixels.at(y * maxx + x).g, pixels.at(y * maxx + x).b);
+			png.plot(static_cast<int>(x), static_cast<int>(y), pixels.at(y * maxx + x).r(), pixels.at(y * maxx + x).g(), pixels.at(y * maxx + x).b());
 		}
 	}
 

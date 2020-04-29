@@ -1,16 +1,17 @@
 #pragma once
 #include "Ray.h"
-#include "Norm3.h"
+#include "norm3.h"
 #include "Material.h"
+#include <glm\glm.hpp>
 
 struct IntersectionTrace {
 	bool inside{ false };
-	Norm3 normal{Norm3::xAxis()};
-	Vec3 hit_position{};
+	norm3 normal{norm3::xAxis()};
+	glm::dvec3 hit_position{};
 	double distance{};
 	Material material{};
 	
-	constexpr IntersectionTrace(bool inside, Norm3 normal, Vec3 hit_position, double distance, Material mat) noexcept
+	constexpr IntersectionTrace(bool inside, norm3 normal, glm::dvec3 hit_position, double distance, Material mat) noexcept
 		: inside(inside), normal(normal), hit_position(hit_position), distance(distance), material(mat) {}
 	constexpr IntersectionTrace() = default;
 };

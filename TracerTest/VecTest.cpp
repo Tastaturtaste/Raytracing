@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "Vec3.h"
 #include "Constants.h"
 #include <random>
+#include <glm\glm.hpp>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -15,30 +15,30 @@ namespace TracerTest
 		std::mt19937 rnd;
 		VecTest() : rnd(std::mt19937(rd())) {}
 		TEST_METHOD(DotTest) {
-			Vec3 basis{ 1.0,0.0,0.0 };
+			glm::dvec3 basis{ 1.0,0.0,0.0 };
 			std::uniform_real_distribution uni;
 			for (int i = 0; i < 1000; ++i) {
 				auto x = uni(rnd);
 				auto y = uni(rnd);
 				auto z = uni(rnd);
-				Vec3 vec{ x,y,z };
-				Assert::AreEqual(basis.dot(vec), x);
+				glm::dvec3 vec{ x,y,z };
+				Assert::AreEqual(glm::dot(basis,vec), x);
 			}
 			basis = { 0.0,1.0,0.0 };
 			for (int i = 0; i < 1000; ++i) {
 				auto x = uni(rnd);
 				auto y = uni(rnd);
 				auto z = uni(rnd);
-				Vec3 vec{ x,y,z };
-				Assert::AreEqual(basis.dot(vec), y);
+				glm::dvec3 vec{ x,y,z };
+				Assert::AreEqual(glm::dot(basis, vec), y);
 			}
 			basis = { 0.0,0.0,1.0 };
 			for (int i = 0; i < 1000; ++i) {
 				auto x = uni(rnd);
 				auto y = uni(rnd);
 				auto z = uni(rnd);
-				Vec3 vec{ x,y,z };
-				Assert::AreEqual(basis.dot(vec), z);
+				glm::dvec3 vec{ x,y,z };
+				Assert::AreEqual(glm::dot(basis, vec), z);
 			}
 		}
 		TEST_METHOD(CrossTest) {
@@ -47,14 +47,14 @@ namespace TracerTest
 				auto x = uni(rnd);
 				auto y = uni(rnd);
 				auto z = uni(rnd);
-				Vec3 vec1{ x,y,z };
+				glm::dvec3 vec1{ x,y,z };
 				x = uni(rnd);
 				y = uni(rnd);
 				z = uni(rnd);
-				Vec3 vec2{ x,y,z };
-				auto cross = vec1.cross(vec2);
-				Assert::IsTrue(fabs(cross.dot(vec1)) < constants::EPS);
-				Assert::IsTrue(fabs(cross.dot(vec2)) < constants::EPS);
+				glm::dvec3 vec2{ x,y,z };
+				auto cross = glm::cross(vec1,vec2);
+				Assert::IsTrue(std::abs(glm::dot(cross,vec1)) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(cross,vec2)) < constants::EPS);
 			}
 		}
 	};
