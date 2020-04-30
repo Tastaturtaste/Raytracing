@@ -1,5 +1,4 @@
 #include "Sphere.h"
-#include <cmath>
 #include <glm\glm.hpp>
 
 std::optional<IntersectionTrace> Sphere::intersect(const Ray& r) const {
@@ -10,10 +9,10 @@ std::optional<IntersectionTrace> Sphere::intersect(const Ray& r) const {
 	if (det < 0)
 		return {};
 
-	det = sqrt(det);
+	det = glm::sqrt(det);
 	const auto minusT = b - det;
 	const auto plusT = b + det;
-	if (minusT < constants::EPS&& plusT < constants::EPS)
+	if (minusT < constants::EPS && plusT < constants::EPS)
 		return {};
 
 	const auto t = minusT > constants::EPS ? minusT : plusT;

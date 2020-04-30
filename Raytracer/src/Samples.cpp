@@ -20,13 +20,6 @@ namespace samples {
 		return transform(basis,sample);
 	}
 
-	//norm3 hemispheresampleUniform(const norm3& normal, double aroundX, double aroundZ) noexcept {
-	//	const auto xyz = norm3::orthogonalFromZ(normal);
-	//	const auto x = xy[0];
-	//	const auto y = xy[1];
-	//	return normal.rotate(x, aroundX).rotate(normal, aroundZ);
-	//}
-
 	norm3 conesampleCosWeighted(const std::array<norm3, 3>& basis, double coneAngle, double u, double v)  {
 		//const auto xyz = norm3::orthogonalFromZ(normal);
 		//const auto x = xy[0];

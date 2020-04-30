@@ -60,5 +60,37 @@ namespace TracerTest
 				Assert::IsTrue(std::abs(glm::dot(cross,vec2.getVec())) < constants::EPS);
 			}
 		}
+		TEST_METHOD(OrthogonalFromZTest) {
+			constexpr auto NumSamples = 10000;
+			std::uniform_real_distribution uni;
+			{
+				auto n = norm3(glm::dvec3(1, 0, 0));
+				auto basis = norm3::orthogonalFromZ(n);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[1].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[1].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(glm::dot(n.getVec(), basis[2].getVec()) > 1 - constants::EPS);
+				n = norm3(glm::dvec3(0, 1, 0));
+				basis = norm3::orthogonalFromZ(n);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[1].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[1].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(glm::dot(n.getVec(), basis[2].getVec()) > 1 - constants::EPS);
+				n = norm3(glm::dvec3(0, 0, 1));
+				basis = norm3::orthogonalFromZ(n);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[1].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[1].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(glm::dot(n.getVec(), basis[2].getVec()) > 1 - constants::EPS);
+			}
+			for (int i = 0; i < NumSamples; ++i) {
+				auto n = norm3(glm::dvec3(uni(rnd), uni(rnd), uni(rnd)));
+				auto basis = norm3::orthogonalFromZ(n);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[1].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[0].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(std::abs(glm::dot(basis[1].getVec(), basis[2].getVec())) < constants::EPS);
+				Assert::IsTrue(glm::dot(n.getVec(), basis[2].getVec()) > 1 - constants::EPS);
+			}
+		}
 	};
 }

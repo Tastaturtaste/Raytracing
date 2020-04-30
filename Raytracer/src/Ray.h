@@ -1,5 +1,5 @@
 #pragma once
-#include <glm\glm.hpp>
+#include <glm\vec3.hpp>
 #include "norm3.h"
 #include <utility>
 

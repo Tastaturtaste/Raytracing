@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "pngwriter.h"
 #include "spdlog\spdlog.h"
+#include "Timer.h"
 
 
 int main(int argc, char* argv[]) {
@@ -15,17 +16,27 @@ int main(int argc, char* argv[]) {
 		.numUSamples{4}
 		,.numVSamples{4}
 		,.preview{false}
-		,.max_depth{3}
+		,.max_depth{1}
 		,.samplesPerPixel{100}
-		,.FOV{90}
+		,.FOV{45}
 		,.sizeX{maxx}
 		,.sizeY{maxy}
 	};
 
 	// begin rendering
 
-	Renderer renderer(Scene::debug_scene(), renderParams, true);
-	std::vector<Color> pixels = renderer.render();
+	// Renderer renderer(Scene::hull_sphere(), renderParams);
+	// Renderer renderer(Scene::debug_scene(), renderParams);
+	Renderer renderer(Scene::light_distribution(), renderParams);
+	// Renderer renderer(Scene::basic_scene(), renderParams);
+
+	int64_t time{};
+	std::vector<Color> pixels(maxx * maxy);
+	{
+		auto timer{ Timer<std::chrono::milliseconds>(&time) };
+		pixels = renderer.render();
+	}
+	spdlog::info("Rendering took {} Seconds.", time * 1. / 1000);
 
 	for (std::size_t y = 0; y < maxy; ++y) {
 		for (std::size_t x = 0; x < maxx; ++x) {

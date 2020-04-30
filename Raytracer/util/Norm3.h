@@ -4,8 +4,7 @@
 #include <array>
 #include <cassert>
 #include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtx\rotate_vector.hpp>
+//#include <glm\gtx\rotate_vector.hpp>
 
 class norm3
 {
@@ -38,10 +37,8 @@ public:
 	[[nodiscard]] static constexpr norm3 yAxis() { return norm3( 0.0, 1.0, 0.0); }
 	[[nodiscard]] static constexpr norm3 zAxis() { return norm3( 0.0, 0.0, 1.0 ); }
 
-	[[nodiscard]] norm3 rotate(const norm3& rotationAxis, double alpha) { return knownNormal(glm::rotate(vec_, alpha, rotationAxis.vec_)); };
-
 	inline static std::array<norm3,3> orthogonalFromZ(const norm3& z) {
-		const auto x = (abs(glm::dot(norm3::xAxis().vec_, z.vec_)) < 1.0 - constants::EPS ? norm3::xAxis() : norm3::yAxis()).vec_;
+		const auto x = (std::abs(glm::dot(norm3::xAxis().vec_, z.vec_)) < 1.0 - constants::EPS ? norm3::xAxis() : norm3::yAxis()).vec_;
 		const auto y = glm::cross(z.vec_, x);
 		const auto xx = glm::normalize(glm::cross(y,z.vec_));
 		const auto yy = glm::normalize(y);

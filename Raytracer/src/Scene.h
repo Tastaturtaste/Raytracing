@@ -31,4 +31,5 @@ public:
 	static Scene basic_scene();
 	static Scene hull_sphere();
 	static Scene debug_scene();
+	static Scene light_distribution();
 };

@@ -3,10 +3,12 @@
 #include "Samples.h"
 #include <vector>
 #include <future>
+#include <thread>
 #include <random>
 #include <chrono>
 #include "Timer.h"
 #include "spdlog\spdlog.h"
+
 
 Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 	if (depth > renderParams_.max_depth)
@@ -67,69 +69,69 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 	}
 }
 
-auto Renderer::generateRenderJob(std::size_t x, std::size_t y) {
+auto Renderer::generateRenderJob(std::size_t sample) {
 	/*const auto x_rezi = 1. / renderParams_.sizeX;
 	const auto y_rezi = 1. / renderParams_.sizeY;*/
 	std::random_device r_device;
-	const unsigned int seed = r_device() + y * renderParams_.sizeX + x;
+	const unsigned int seed = static_cast<unsigned int>(r_device()) + static_cast<unsigned int>(sample);
 	
 	/*const norm3 dir = cam_.getRayDirection(x, y, rnd);
 	const auto uni = std::uniform_real_distribution(0.0, 1.0);*/
-	return [&,seed,x,y](){
-		auto rnd = std::mt19937(seed + y * renderParams_.sizeX + x);
-		Color c{};
-		Ray r{};
-		for (unsigned int s = 0; s < renderParams_.samplesPerPixel; ++s) {
-			//r = Ray({ 0.5,0.5,0.05 }, cam_.getRayDirection(x, y, rnd));
-			r = cam_.getRay(x, y, rnd);
-			c += radiance(r, rnd, 0) / renderParams_.samplesPerPixel;
+	return std::async(
+		std::launch::async,
+		[&, seed]() {
+			auto rnd = std::mt19937(seed);
+			auto pixels_ = std::vector<Color>(renderParams_.sizeX * renderParams_.sizeY);
+			Ray r{};
+			for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
+				for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
+					r = cam_.getRay(x, y, rnd);
+					pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
+				}
+			}
+			return std::move(pixels_);
 		}
-		c = clamp(c, 0.0, 1.0);
-		return (counter_++, c); };
-}
-
-std::size_t Renderer::percentRendered() {
-	return 100 * counter_.get() / pixels_.size();
+	);
 }
 
 std::vector<Color> Renderer::render() {
-
-	const auto renderSingleThread = [&]() {
-		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
-			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
-				pixels_[y * renderParams_.sizeX + x] = generateRenderJob(x, y)();
-			}
-		}
-	};
-
-	const auto renderMultiThread = [&]() {
-		std::vector<std::future<Color>> results(pixels_.size());
-
-		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
-			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
-				results[y * renderParams_.sizeX + x] = std::async(std::launch::async, generateRenderJob(x, y));
-			}
-		}
-		auto pct = percentRendered();
-		spdlog::info("{} Percent of pixels done", pct);
-		do {
-			std::this_thread::sleep_for(std::chrono::seconds(2));
-			pct = percentRendered();
-			spdlog::info("{} Percent of pixels done", pct);
-		} while (pct < 100);
-
+	auto numCores = std::thread::hardware_concurrency();
+	std::vector<std::future<std::vector<Color>>> results;
+	results.reserve(numCores);
+	const auto addSample = [&](const std::vector<Color>& sample) noexcept {
 		for (std::size_t i = 0; i < pixels_.size(); ++i) {
-			pixels_[i] = results[i].get();
+			pixels_[i] += sample[i] / renderParams_.samplesPerPixel;
 		}
 	};
 
-	int64_t time{};
-	{
-		auto timer{ Timer<std::chrono::milliseconds>(&time) };
-		multithread_ ? renderMultiThread() : renderSingleThread();
-	}
-	
-	spdlog::info("Rendering took {} Seconds.", time * 1./1000);
+	auto samplesDone = 0u;
+	const auto checkFutureStatus = [](auto& f) {return f.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready; };
+	auto pct = samplesDone / renderParams_.samplesPerPixel * 100;
+	std::size_t currentSample = 0;
+	const auto jobSpawner = [&]() {
+		const auto numLeft = renderParams_.samplesPerPixel - currentSample;
+		const auto cpusFree = numCores - results.size();
+		const auto numToSpawn = std::min<std::size_t>(numLeft, cpusFree);
+		for (std::size_t i = 0; i < numToSpawn; ++i) {
+			results.emplace_back(generateRenderJob(currentSample));
+			currentSample += i;
+		}
+	};
+
+	do {
+		jobSpawner();
+		for (auto readyFuture = std::find_if(results.begin(), results.end(), checkFutureStatus); readyFuture != results.end(); readyFuture = std::find_if(results.begin(), results.end(), checkFutureStatus)) {
+			addSample(readyFuture->get());
+			++samplesDone;
+			results.erase(readyFuture);
+		}
+
+		pct = (100 * samplesDone) / renderParams_.samplesPerPixel;
+		spdlog::info("{} Percent of pixels done", pct);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			
+	} while (samplesDone < renderParams_.samplesPerPixel);
 
 	return pixels_;
 }
