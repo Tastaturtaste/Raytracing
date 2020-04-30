@@ -172,6 +172,7 @@
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="primitives\Sphere.h" />
     <ClInclude Include="primitives\Triangle.h" />
+    <ClInclude Include="util\ThreadPool.h" />
     <ClInclude Include="util\Constants.h" />
     <ClInclude Include="util\loadScene.h" />
     <ClInclude Include="util\Norm3.h" />

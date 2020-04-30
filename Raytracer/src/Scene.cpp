@@ -18,7 +18,7 @@ std::optional<IntersectionTrace> Scene::find_nearest(const Ray& r) const {
 
 Scene Scene::basic_scene()
 {
-	constexpr double greyval = 0.6;
+	constexpr double greyval = 0.2;
 	return Scene({
 	Sphere(glm::dvec3(1e5,		0.5,		0.5),		1e5, Material::grey_diffuse(greyval)),		// left wall
 	Sphere(glm::dvec3(-1e5+1.0,	0.5,		0.5),		1e5, Material::grey_diffuse(greyval)),		// right wall
@@ -26,7 +26,7 @@ Scene Scene::basic_scene()
 	Sphere(glm::dvec3(0.5,		0.5,		1e5),		1e5, Material::grey_diffuse(greyval)),		// floor
 	Sphere(glm::dvec3(0.5,		-1e5+1,		0.5),		1e5, Material::grey_diffuse(greyval)),		// backwall
 	Sphere(glm::dvec3(0.5,		1e5,		0.5),		1e5, Material::grey_diffuse(greyval)),		// frontwall
-	Sphere(glm::dvec3(0.4,		0.2,		0.85),		0.1, Material::white_light(20.0)),	// lightsource
+	Sphere(glm::dvec3(0.4,		0.2,		0.85),		0.1, Material::white_light(5.0)),	// lightsource
 	Sphere(glm::dvec3(0.7,		0.5,		0.2),		0.2, Material::green_diffuse()),	// green sphere
 	Sphere(glm::dvec3(0.2,		0.7,		0.2),		0.2, Material::red_shiny())			// shine red sphere
 	});
@@ -37,7 +37,7 @@ Scene Scene::hull_sphere()
 	constexpr double greyval = 0.6;
 	return Scene({
 	Sphere(glm::dvec3(0.5,	 0.5,	0.5),		2.0, Material::grey_diffuse(greyval)),		// wall
-	Sphere(glm::dvec3(0.1,	-0.2,	0.85),		0.1, Material::white_light(100.0)),	// lightsource
+	Sphere(glm::dvec3(0.1,	-0.2,	0.85),		0.1, Material::white_light(20.0)),	// lightsource
 	Sphere(glm::dvec3(0.7,	 0.5,	0.2),		0.2, Material::green_diffuse()),	// green sphere
 	Sphere(glm::dvec3(0.2,	 0.7,	0.2),		0.2, Material::red_shiny()),		// shine red sphere
 	Sphere(glm::dvec3(0.5,	 0.8,	0.5),		0.2, Material::mirror())			// mirror sphere

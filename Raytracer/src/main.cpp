@@ -6,6 +6,8 @@
 #include "spdlog\spdlog.h"
 #include "Timer.h"
 
+#include "ThreadPool.h"
+
 
 int main(int argc, char* argv[]) {
 	constexpr std::size_t maxx = 720;
@@ -16,22 +18,22 @@ int main(int argc, char* argv[]) {
 		.numUSamples{4}
 		,.numVSamples{4}
 		,.preview{false}
-		,.max_depth{1}
+		,.max_depth{2}
 		,.samplesPerPixel{100}
-		,.FOV{45}
+		,.FOV{90}
 		,.sizeX{maxx}
 		,.sizeY{maxy}
 	};
 
 	// begin rendering
 
-	// Renderer renderer(Scene::hull_sphere(), renderParams);
+	//Renderer renderer(Scene::hull_sphere(), renderParams);
 	// Renderer renderer(Scene::debug_scene(), renderParams);
-	Renderer renderer(Scene::light_distribution(), renderParams);
-	// Renderer renderer(Scene::basic_scene(), renderParams);
+	// Renderer renderer(Scene::light_distribution(), renderParams);
+	Renderer renderer(Scene::basic_scene(), renderParams);
 
 	int64_t time{};
-	std::vector<Color> pixels(maxx * maxy);
+	std::vector<Color> pixels(maxx * maxy, Color());
 	{
 		auto timer{ Timer<std::chrono::milliseconds>(&time) };
 		pixels = renderer.render();

@@ -5,6 +5,7 @@
 #include "Norm3.h"
 #include "Samples.h"
 #include "Constants.h"
+#include "Color.h"
 #include <glm\glm.hpp>
 #include <spdlog\spdlog.h>
 #include <cmath>
@@ -81,6 +82,31 @@ namespace TracerTest
 			Assert::IsTrue(std::abs(normY) < onePct);
 			Assert::IsTrue(std::abs(2 * uAvg) - 1.0 < onePct);
 			Assert::IsTrue(std::abs(2 * vAvg) - 1.0 < onePct);
+		}
+		TEST_METHOD(TestHemisphereSampleStratifiedAverage) {
+			using namespace samples;
+			constexpr auto NumSamples = 10000u;
+			std::uniform_real_distribution uni(0.0, 1.0);
+
+			auto vec = glm::dvec3(0.0, 0.0, 1.0);
+			auto norm = norm3(vec);
+			const auto basis = norm3::orthogonalFromZ(norm);
+			glm::dvec3 avg{};
+			constexpr auto maxUSamples = 4;
+			constexpr auto maxVSamples = 4;
+			for (std::size_t i = 0; i < NumSamples; ++i) {
+				for (auto vSample = 0u; vSample < maxVSamples; ++vSample) {
+					for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
+						const double u = (uSample + uni(rnd)) / maxUSamples;
+						const double v = (vSample + uni(rnd)) / maxVSamples;
+						const norm3 outbound = samples::hemispheresampleCosWeighted(basis, u, v);
+
+						avg += outbound.getVec();
+					}
+				}
+			}
+			avg = glm::normalize(avg);
+			Assert::IsTrue(avg.z > (1 - constants::EPS));
 		}
 	};
 }

@@ -23,7 +23,7 @@ norm3 Camera::getRayDirection(std::size_t X, std::size_t Y, std::mt19937& rnd) c
 	return dir;
 }
 
-Camera::Camera(std::size_t pixelWidth, std::size_t PixelHeight, glm::dvec3 eye, glm::dvec3 motive, norm3 up, double FOV)  // FOV input in degrees
+Camera::Camera(std::size_t pixelWidth, std::size_t PixelHeight, const glm::dvec3& eye, const glm::dvec3& motive, const norm3& up, double FOV)  // FOV input in degrees
 : aspectRatio_(static_cast<double>(pixelWidth) / PixelHeight), pixelWidth_(pixelWidth), pixelHeight_(PixelHeight),
 eye_(eye), matLookAt_(glm::lookAt(eye, motive, up.getVec())), matTrans_(glm::translate(glm::dmat4(1.0), eye)), matOrient_(glm::orientation(glm::normalize(eye - motive), up.getVec())),
 basis_(norm3::orthogonalFromZY(norm3(motive - eye), up)), cameraPlaneDist_(aspectRatio_ / tan(FOV / 2)) {}

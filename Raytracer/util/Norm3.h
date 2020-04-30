@@ -6,6 +6,8 @@
 #include <glm\glm.hpp>
 //#include <glm\gtx\rotate_vector.hpp>
 
+class Sphere;
+
 class norm3
 {
 	glm::dvec3 vec_;
@@ -15,7 +17,7 @@ class norm3
 	constexpr operator glm::dvec3() const { return glm::dvec3(vec_); }
 
 	constexpr static norm3 knownNormal(const glm::dvec3& vec) { return norm3(vec.x,vec.y,vec.z); }
-
+	friend Sphere;
 public:
 	explicit norm3(const glm::dvec3& v)
 		: vec_{ glm::normalize(v) } {};

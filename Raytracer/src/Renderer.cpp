@@ -22,9 +22,9 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 		nearest = maybe_nearest.value();
 	}
 	if (renderParams_.preview) {
-		const auto dif = nearest.material.diffuse_color();
-		const auto spec = nearest.material.specular_color();
-		const auto p = nearest.material.prob_diffuse();
+		const auto dif = nearest.material->diffuse_color();
+		const auto spec = nearest.material->specular_color();
+		const auto p = nearest.material->prob_diffuse();
 		return Color(
 			std::lerp(spec.r(),dif.r(),static_cast<double>(p)),
 			std::lerp(spec.g(),dif.r(),static_cast<double>(p)),
@@ -34,7 +34,7 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 
 	
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
-	if (uni(rnd) < nearest.material.prob_diffuse())
+	if (uni(rnd) < nearest.material->prob_diffuse())
 	{
 		const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest.normal);
 		Color result{};
@@ -42,18 +42,18 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 		const auto maxVSamples = depth < 1 ? renderParams_.numVSamples : 1;
 		for (auto vSample = 0u; vSample < maxVSamples; ++vSample) {
 			for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
-				const double u = (uSample + uni(rnd)) / maxUSamples;
-				const double v = (vSample + uni(rnd)) / maxVSamples;
+				const double u = (static_cast<double>(uSample) + uni(rnd)) / maxUSamples;
+				const double v = (static_cast<double>(vSample) + uni(rnd)) / maxVSamples;
 				const norm3 outbound = samples::hemispheresampleCosWeighted(base, u, v);
 
 				result += radiance(
 					Ray(nearest.hit_position, outbound),
-					rnd, ++depth);
+					rnd, depth + 1);
 			}
 		}
 		result = result / static_cast<double>(maxUSamples * maxVSamples);
-		return nearest.material.light_color() +
-			convolute(result, nearest.material.diffuse_color());
+		return nearest.material->light_color() +
+			convolute(result, nearest.material->diffuse_color());
 	}
 	else {
 		//const norm3 outbound = nearest.normal.reflect(r.direction());
@@ -61,10 +61,10 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest.normal.getVec())));
 		const norm3 outbound = samples::conesampleCosWeighted(base,5.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
 
-		return nearest.material.light_color() +
+		return nearest.material->light_color() +
 			convolute(
 				radiance(Ray(nearest.hit_position, outbound), rnd, ++depth),
-				nearest.material.specular_color()
+				nearest.material->specular_color()
 			);
 	}
 }
@@ -94,6 +94,12 @@ auto Renderer::generateRenderJob(std::size_t sample) {
 	);
 }
 
+void gammaCorrection(std::vector<Color>& image, double correctionValue = 1.0 / 2.2) {
+	for (Color& c : image) {
+		c.vec_ = glm::pow(c.vec_, decltype(c.vec_)(correctionValue));
+	}
+}
+
 std::vector<Color> Renderer::render() {
 	auto numCores = std::thread::hardware_concurrency();
 	std::vector<std::future<std::vector<Color>>> results;
@@ -108,6 +114,7 @@ std::vector<Color> Renderer::render() {
 	const auto checkFutureStatus = [](auto& f) {return f.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready; };
 	auto pct = samplesDone / renderParams_.samplesPerPixel * 100;
 	std::size_t currentSample = 0;
+
 	const auto jobSpawner = [&]() {
 		const auto numLeft = renderParams_.samplesPerPixel - currentSample;
 		const auto cpusFree = numCores - results.size();
@@ -127,11 +134,12 @@ std::vector<Color> Renderer::render() {
 		}
 
 		pct = (100 * samplesDone) / renderParams_.samplesPerPixel;
-		spdlog::info("{} Percent of pixels done", pct);
+		spdlog::info("{} Percent of samples done", pct);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			
 	} while (samplesDone < renderParams_.samplesPerPixel);
 
+	gammaCorrection(pixels_);
 	return pixels_;
 }

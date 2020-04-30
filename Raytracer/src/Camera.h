@@ -25,7 +25,7 @@ class Camera {
 	[[nodiscard]] glm::vec2 normalizedPosition(std::size_t pixX, std::size_t pixY, std::mt19937& rnd) const;
 
 public:
-	Camera(std::size_t pixelWidth, std::size_t PixelHeight, glm::dvec3 eye, glm::dvec3 motive, norm3 up, double FOV);  // FOV input in degrees
+	Camera(std::size_t pixelWidth, std::size_t PixelHeight, const glm::dvec3& eye, const glm::dvec3& motive, const norm3& up, double FOV);  // FOV input in degrees
 
 	[[nodiscard]] norm3 getRayDirection(std::size_t X, std::size_t Y, std::mt19937& rnd) const;
 

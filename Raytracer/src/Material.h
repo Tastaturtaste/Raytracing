@@ -19,7 +19,7 @@ public:
 	constexpr double prob_diffuse() const noexcept { return prob_diffuse_; }
 
 	static Material white_light(double power) noexcept { return Material({}, {}, Color( power,power,power ), 1.0f); }
-	static Material green_diffuse() noexcept { return Material(Color( 0.2,0.8,0.2 ), Color( 0.2,0.8,0.2 ), {}, 0.9f); }
+	static Material green_diffuse() noexcept { return Material(Color( 0.1,0.4,0.1 ), Color( 0.1,0.4,0.1 ), {}, 0.9f); }
 	static Material red_shiny() noexcept { return Material(Color( 0.8,0.2,0.2 ), Color( 0.8,0.2,0.2 ), {}, 0.1f); }
 	static Material mirror() noexcept { return Material(Color( 0.999,0.999,0.999 ), Color( 0.999,0.999,0.999 ), {}, 0.0f); }
 	static Material grey_diffuse(double greyVal) noexcept { 

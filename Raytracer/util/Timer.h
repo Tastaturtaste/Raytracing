@@ -18,12 +18,20 @@ struct Timer {
 		: begin(std::chrono::high_resolution_clock::now()) {}
 	constexpr explicit Timer(int64_t* duration) 
 		: p_duration(duration),begin(std::chrono::high_resolution_clock::now())	{}
+
+	constexpr void writeTime() noexcept {
+		try
+		{
+			std::cout << "Scope was " << std::chrono::duration_cast<duration_type>(time).count() << " units alive.\n";
+		}
+		catch (const std::exception&){}
+	}
 	~Timer() {
 		end = std::chrono::high_resolution_clock::now();
 		time = std::chrono::duration_cast<duration_type>(end - begin);
 		if (p_duration)
 			*p_duration = time.count();
 		else
-			std::cout << "Scope was " << std::chrono::duration_cast<duration_type>(time).count() << " units alive.\n";
+			writeTime();
 	}
 };

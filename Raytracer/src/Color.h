@@ -33,7 +33,7 @@ constexpr Color& Color::operator+=(const Color& rhs) noexcept {
 }
 
 constexpr Color operator/(const Color& c, double d) {
-	return Color( c.vec_ * (1.0f / d) );
+	return Color( c.vec_ / d );
 }
 
 constexpr Color clamp(const Color& c, double min, double max) {

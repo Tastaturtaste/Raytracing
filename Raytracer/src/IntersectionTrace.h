@@ -9,9 +9,9 @@ struct IntersectionTrace {
 	norm3 normal{norm3::xAxis()};
 	glm::dvec3 hit_position{};
 	double distance{};
-	Material material{};
+	const Material* material{};
 	
-	constexpr IntersectionTrace(bool inside, norm3 normal, glm::dvec3 hit_position, double distance, Material mat) noexcept
-		: inside(inside), normal(normal), hit_position(hit_position), distance(distance), material(mat) {}
+	constexpr IntersectionTrace(bool inside, const norm3& normal, const glm::dvec3& hit_position, double distance, const Material& mat) noexcept
+		: inside(inside), normal(normal), hit_position(hit_position), distance(distance), material(&mat) {}
 	constexpr IntersectionTrace() = default;
 };

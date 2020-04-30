@@ -1,6 +1,8 @@
 #include "Samples.h"
 #include <cmath>
 #include <glm\glm.hpp>
+#include <mutex>
+
 
 namespace samples {
 
@@ -16,7 +18,7 @@ namespace samples {
 		const auto theta = 2 * constants::pi * u;
 		const auto radiusSquared = v;
 		const auto radius = glm::sqrt(radiusSquared);
-		const auto sample = glm::dvec3(glm::cos(theta) * radius, glm::sin(theta) * radius, glm::sqrt(1 - radiusSquared));
+		const auto sample = glm::dvec3(glm::cos(theta) * radius, glm::sin(theta) * radius, glm::sqrt(1.0 - radiusSquared));
 		return transform(basis,sample);
 	}
 
@@ -28,7 +30,7 @@ namespace samples {
 		const auto theta = 2 * constants::pi * u;
 		const auto radiusSquared = glm::sin(coneAngle) * v;
 		const auto radius = glm::sqrt(radiusSquared);
-		const auto sample = glm::dvec3(glm::cos(theta) * radius, glm::sin(theta) * radius, glm::sqrt(1 - radiusSquared));
+		const auto sample = glm::dvec3(glm::cos(theta) * radius, glm::sin(theta) * radius, glm::sqrt(1.0 - radiusSquared));
 		return transform(basis,sample);
 	}
 }

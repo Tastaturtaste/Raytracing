@@ -6,7 +6,7 @@
 #include "Ray.h"
 
 class Primitive {
-	Material mat_;
+	const Material mat_;
 
 protected:
 	constexpr Primitive(Material mat) noexcept
@@ -15,7 +15,7 @@ protected:
 public:
 	virtual ~Primitive() = default;
 	
-	constexpr Material material() const noexcept { return mat_; }
-	virtual norm3 normal(glm::dvec3 hitPos) const = 0;
+	constexpr const Material& material() const noexcept { return mat_; }
+	virtual norm3 normal(const glm::dvec3& hitPos) const = 0;
 	virtual std::optional<IntersectionTrace> intersect(const Ray&) const = 0;
 };

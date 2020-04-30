@@ -28,7 +28,7 @@ public:
 	constexpr Triangle(std::array<glm::dvec3, 3> vertices, Material mat, norm3 normal) noexcept
 		: Primitive{ mat }, vertices_(vertices), normal_(normal){}
 
-	norm3 normal([[maybe_unused]] glm::dvec3 hitPos) const noexcept override {
+	norm3 normal([[maybe_unused]] const glm::dvec3& hitPos) const noexcept override {
 		return normal_;
 	}
 	template<std::size_t i1, std::size_t i2>
