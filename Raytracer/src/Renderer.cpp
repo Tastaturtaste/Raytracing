@@ -3,11 +3,11 @@
 #include "Samples.h"
 #include <vector>
 #include <future>
-#include <thread>
 #include <random>
 #include <chrono>
 #include "Timer.h"
 #include "spdlog\spdlog.h"
+#include "ThreadPool.h"
 
 
 Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
@@ -77,21 +77,18 @@ auto Renderer::generateRenderJob(std::size_t sample) {
 	
 	/*const norm3 dir = cam_.getRayDirection(x, y, rnd);
 	const auto uni = std::uniform_real_distribution(0.0, 1.0);*/
-	return std::async(
-		std::launch::async,
-		[&, seed]() {
-			auto rnd = std::mt19937(seed);
-			auto pixels_ = std::vector<Color>(renderParams_.sizeX * renderParams_.sizeY);
-			Ray r{};
-			for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
-				for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
-					r = cam_.getRay(x, y, rnd);
-					pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
-				}
+	return 	[&, seed]() {
+		auto rnd = std::mt19937(seed);
+		auto pixels_ = std::vector<Color>(renderParams_.sizeX * renderParams_.sizeY);
+		Ray r{};
+		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
+			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
+				r = cam_.getRay(x, y, rnd);
+				pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
 			}
-			return std::move(pixels_);
 		}
-	);
+		return std::move(pixels_); 
+	};
 }
 
 void gammaCorrection(std::vector<Color>& image, double correctionValue = 1.0 / 2.2) {
@@ -101,45 +98,91 @@ void gammaCorrection(std::vector<Color>& image, double correctionValue = 1.0 / 2
 }
 
 std::vector<Color> Renderer::render() {
-	auto numCores = std::thread::hardware_concurrency();
+	const auto numCores = std::thread::hardware_concurrency();
+	auto threadPool = ThreadPool(numCores);
 	std::vector<std::future<std::vector<Color>>> results;
 	results.reserve(numCores);
-	const auto addSample = [&](const std::vector<Color>& sample) noexcept {
+
+	const auto addSample = [&](const std::vector<Color>&& sample) noexcept {
 		for (std::size_t i = 0; i < pixels_.size(); ++i) {
 			pixels_[i] += sample[i] / renderParams_.samplesPerPixel;
 		}
 	};
-
 	auto samplesDone = 0u;
+	auto samplesLeft = renderParams_.samplesPerPixel;
+	auto pct = (100 * samplesDone) / renderParams_.samplesPerPixel;
 	const auto checkFutureStatus = [](auto& f) {return f.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready; };
-	auto pct = samplesDone / renderParams_.samplesPerPixel * 100;
-	std::size_t currentSample = 0;
-
-	const auto jobSpawner = [&]() {
-		const auto numLeft = renderParams_.samplesPerPixel - currentSample;
-		const auto cpusFree = numCores - results.size();
-		const auto numToSpawn = std::min<std::size_t>(numLeft, cpusFree);
-		for (std::size_t i = 0; i < numToSpawn; ++i) {
-			results.emplace_back(generateRenderJob(currentSample));
-			currentSample += i;
+	const auto applyFutures = [&]() {
+		auto it = std::find_if(results.begin(), results.end(), checkFutureStatus);
+		while (it != results.end())
+		{
+			addSample(it->get());
+			++samplesDone;
+			results.erase(it);
+			it = std::find_if(results.begin(), results.end(), checkFutureStatus);
 		}
 	};
-
 	do {
-		jobSpawner();
-		for (auto readyFuture = std::find_if(results.begin(), results.end(), checkFutureStatus); readyFuture != results.end(); readyFuture = std::find_if(results.begin(), results.end(), checkFutureStatus)) {
-			addSample(readyFuture->get());
-			++samplesDone;
-			results.erase(readyFuture);
+		auto spaceInQueue = std::max<std::size_t>(threadPool.numThreads() - threadPool.numJobs(), 0u);
+		auto jobsToAdd = std::min<std::size_t>(samplesLeft, spaceInQueue);
+		for (; jobsToAdd > 0; --jobsToAdd) {
+			results.emplace_back(threadPool.addJob(generateRenderJob(jobsToAdd)));
+			--samplesLeft;
 		}
+		applyFutures();
 
 		pct = (100 * samplesDone) / renderParams_.samplesPerPixel;
 		spdlog::info("{} Percent of samples done", pct);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			
+
 	} while (samplesDone < renderParams_.samplesPerPixel);
 
 	gammaCorrection(pixels_);
-	return pixels_;
+
+	return std::move(pixels_);
 }
+
+//std::vector<Color> Renderer::render() {
+//	auto numCores = std::thread::hardware_concurrency();
+//	std::vector<std::future<std::vector<Color>>> results;
+//	results.reserve(numCores);
+//	const auto addSample = [&](const std::vector<Color>& sample) noexcept {
+//		for (std::size_t i = 0; i < pixels_.size(); ++i) {
+//			pixels_[i] += sample[i] / renderParams_.samplesPerPixel;
+//		}
+//	};
+//
+//	auto samplesDone = 0u;
+//	const auto checkFutureStatus = [](auto& f) {return f.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready; };
+//	auto pct = samplesDone / renderParams_.samplesPerPixel * 100;
+//	std::size_t currentSample = 0;
+//
+//	const auto jobSpawner = [&]() {
+//		const auto numLeft = renderParams_.samplesPerPixel - currentSample;
+//		const auto cpusFree = numCores - results.size();
+//		const auto numToSpawn = std::min<std::size_t>(numLeft, cpusFree);
+//		for (std::size_t i = 0; i < numToSpawn; ++i) {
+//			results.emplace_back(std::async(std::launch::async,generateRenderJob(currentSample)));
+//			currentSample += i;
+//		}
+//	};
+//
+//	do {
+//		jobSpawner();
+//		for (auto readyFuture = std::find_if(results.begin(), results.end(), checkFutureStatus); readyFuture != results.end(); readyFuture = std::find_if(results.begin(), results.end(), checkFutureStatus)) {
+//			addSample(readyFuture->get());
+//			++samplesDone;
+//			results.erase(readyFuture);
+//		}
+//
+//		pct = (100 * samplesDone) / renderParams_.samplesPerPixel;
+//		spdlog::info("{} Percent of samples done", pct);
+//
+//		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//			
+//	} while (samplesDone < renderParams_.samplesPerPixel);
+//
+//	gammaCorrection(pixels_);
+//	return std::move(pixels_);
+//}

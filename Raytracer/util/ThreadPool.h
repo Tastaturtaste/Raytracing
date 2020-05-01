@@ -26,27 +26,29 @@ class ThreadPool {
 	class AnyJob : public Job {
 		std::packaged_task<RetType()> f_;
 	public:
-		AnyJob(std::packaged_task<RetType> f)
+		AnyJob(std::packaged_task<RetType()> f) noexcept
 			: f_(std::move(f)) {}
-		void execute() {
+		void execute() override {
 			f_();
 		}
 	};
 
-	std::vector<std::thread> threads{ std::thread::hardware_concurrency() };
-	std::queue<std::unique_ptr<Job>> jobs;
+	std::vector<std::thread> threads{};
+	std::queue<std::unique_ptr<Job>> jobs{};
 	std::size_t jobSizeCache{};
-	std::mutex poolMutex;
+	std::mutex poolMutex{};
 	std::condition_variable notifyThreads;
 	bool terminate{ false };
 	bool stopped{ false };
 
-	void init()
+public:
+	ThreadPool(std::size_t poolSize)
 	{
-		for (std::size_t i = 0; i < threads.size(); ++i) {
+		threads.reserve(poolSize);
+		for (std::size_t i = 0; i < poolSize; ++i) {
 			threads.emplace_back([&]() {
 				std::unique_ptr<Job> job;
-				while (true) {
+				while (!terminate) {
 					{
 						std::unique_lock<std::mutex> lock(poolMutex);
 						notifyThreads.wait(lock, [&] {return !jobs.empty() || terminate; });
@@ -54,25 +56,17 @@ class ThreadPool {
 							continue;
 						job = std::move(jobs.front());
 						jobs.pop();
-						--jobSizeCache;
+						jobSizeCache = jobs.size();;
 					}
-					if(job)
+					if (job)
 						job->execute();
 				}
-			});
+				});
+			/*threads.back().detach();*/
 		}
 	}
 
-
-public:
-	ThreadPool(std::size_t poolSize)
-		: threads(poolSize){
-		init();
-	}
-
-	ThreadPool(){
-		init();
-	}
+	ThreadPool() = delete;
 
 	~ThreadPool(){
 		if (!stopped)
@@ -89,10 +83,11 @@ public:
 		using retType = decltype(f(args...));
 		std::packaged_task<retType()> task(std::move(std::bind(f, args...)));
 		std::future<retType> future = task.get_future();
+		auto upt = std::make_unique<AnyJob<retType> >(std::move(task));
 		{
 			std::lock_guard<std::mutex> lock(poolMutex);
-			jobs.emplace(std::move(task));
-			++jobSizeCache;
+			jobs.emplace(std::move(upt));
+			jobSizeCache = jobs.size();
 		}
 		notifyThreads.notify_one();
 		return future;
@@ -110,6 +105,7 @@ public:
 			}
 		}
 		catch (std::exception& e) {
+			spdlog::error("Thread not joined!");
 			assert(false);
 		}
 	}

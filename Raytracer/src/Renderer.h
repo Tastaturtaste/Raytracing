@@ -36,5 +36,6 @@ public:
 		cam_(Camera(renderParams.sizeX, renderParams.sizeY, glm::dvec3( 0.5,0.05,0.5 ), glm::dvec3( 0.5,0.5,0.5 ),norm3::zAxis(), renderParams.FOV * constants::pi / 180)), counter_(Counter()) {}
 
 	std::vector<Color> render();
+	std::vector<Color> render2();
 	std::size_t percentRendered();
 };

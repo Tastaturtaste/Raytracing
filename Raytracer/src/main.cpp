@@ -6,8 +6,6 @@
 #include "spdlog\spdlog.h"
 #include "Timer.h"
 
-#include "ThreadPool.h"
-
 
 int main(int argc, char* argv[]) {
 	constexpr std::size_t maxx = 720;
@@ -33,7 +31,8 @@ int main(int argc, char* argv[]) {
 	Renderer renderer(Scene::basic_scene(), renderParams);
 
 	int64_t time{};
-	std::vector<Color> pixels(maxx * maxy, Color());
+	std::vector<Color> pixels;
+	pixels.reserve(maxx * maxy);
 	{
 		auto timer{ Timer<std::chrono::milliseconds>(&time) };
 		pixels = renderer.render();
