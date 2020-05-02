@@ -21,5 +21,5 @@ std::optional<IntersectionTrace> Sphere::intersect(const Ray& r) const {
 	const bool inside = glm::dot(normal.getVec(),r.direction().getVec()) > 0;
 	if (inside)
 		normal = -normal;
-	return IntersectionTrace(inside, std::move(normal), hitPosition, t, material());
+	return IntersectionTrace(inside, normal, hitPosition, t, material());
 }

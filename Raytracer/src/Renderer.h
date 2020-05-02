@@ -22,9 +22,7 @@ class Renderer
 	const Scene scene_;
 	const RenderParams renderParams_;
 	const double normalizer_;
-	std::vector<Color> pixels_;
-	Camera cam_;
-	mutable Counter counter_;
+	const Camera cam_;
 
 	Color radiance(const Ray& r, std::mt19937& rnd, unsigned int depth);
 
@@ -32,8 +30,8 @@ class Renderer
 
 public:
 	Renderer(Scene&& scene, const RenderParams& renderParams)
-		: scene_(std::move(scene)), renderParams_(renderParams), normalizer_(1. / renderParams.sizeX), pixels_(std::vector<Color>(renderParams.sizeX* renderParams.sizeY)),
-		cam_(Camera(renderParams.sizeX, renderParams.sizeY, glm::dvec3( 0.5,0.05,0.5 ), glm::dvec3( 0.5,0.5,0.5 ),norm3::zAxis(), renderParams.FOV * constants::pi / 180)), counter_(Counter()) {}
+		: scene_(std::move(scene)), renderParams_(renderParams), normalizer_(1. / renderParams.sizeX),
+		cam_(Camera(renderParams.sizeX, renderParams.sizeY, glm::dvec3( 0.5,0.05,0.5 ), glm::dvec3( 0.5,0.5,0.5 ),norm3::zAxis(), renderParams.FOV * constants::pi / 180)) {}
 
 	std::vector<Color> render();
 	std::vector<Color> render2();

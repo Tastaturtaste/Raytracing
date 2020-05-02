@@ -105,7 +105,7 @@ public:
 			}
 		}
 		catch (std::exception& e) {
-			spdlog::error("Thread not joined!");
+			spdlog::error("Exception in Threadpool: {}",e.what());
 			assert(false);
 		}
 	}

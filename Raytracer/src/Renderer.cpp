@@ -5,9 +5,17 @@
 #include <future>
 #include <random>
 #include <chrono>
+#include <algorithm>
+#include <functional>
+#include <numeric>
+#include <execution>
 #include "Timer.h"
 #include "spdlog\spdlog.h"
 #include "ThreadPool.h"
+
+constexpr Ray outRay(const glm::dvec3& pos, const norm3& dir) noexcept {
+	return Ray(pos + dir.getVec() * constants::EPS, dir);
+}
 
 
 Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
@@ -47,8 +55,9 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 				const norm3 outbound = samples::hemispheresampleCosWeighted(base, u, v);
 
 				result += radiance(
-					Ray(nearest.hit_position, outbound),
-					rnd, depth + 1);
+					outRay(
+						nearest.hit_position,outbound),
+						rnd, depth + 1);
 			}
 		}
 		result = result / static_cast<double>(maxUSamples * maxVSamples);
@@ -59,59 +68,79 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 		//const norm3 outbound = nearest.normal.reflect(r.direction());
 		/*const norm3 outbound = samples::hemispheresampleUniform(nearest.normal.reflect(r.direction()), uni(rnd) * 5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);*/
 		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest.normal.getVec())));
-		const norm3 outbound = samples::conesampleCosWeighted(base,5.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
+		const norm3 outbound = samples::conesampleCosWeighted(base, 0.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
 
 		return nearest.material->light_color() +
 			convolute(
-				radiance(Ray(nearest.hit_position, outbound), rnd, ++depth),
-				nearest.material->specular_color()
-			);
+				radiance(
+					outRay(nearest.hit_position, outbound), rnd, ++depth),
+					nearest.material->specular_color());
 	}
 }
 
 auto Renderer::generateRenderJob(std::size_t sample) {
-	/*const auto x_rezi = 1. / renderParams_.sizeX;
-	const auto y_rezi = 1. / renderParams_.sizeY;*/
+
 	std::random_device r_device;
 	const unsigned int seed = static_cast<unsigned int>(r_device()) + static_cast<unsigned int>(sample);
 	
-	/*const norm3 dir = cam_.getRayDirection(x, y, rnd);
-	const auto uni = std::uniform_real_distribution(0.0, 1.0);*/
-	return 	[&, seed]() {
+	return 	[this, seed]() {
 		auto rnd = std::mt19937(seed);
-		auto pixels_ = std::vector<Color>(renderParams_.sizeX * renderParams_.sizeY);
+		std::vector<Color> pixels_;
+		pixels_.reserve(renderParams_.sizeX * renderParams_.sizeY);
 		Ray r{};
 		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
 			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
 				r = cam_.getRay(x, y, rnd);
-				pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
+				//pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
+				pixels_.emplace_back(radiance(r, rnd, 0) / renderParams_.samplesPerPixel);
 			}
 		}
 		return std::move(pixels_); 
 	};
 }
 
-void gammaCorrection(std::vector<Color>& image, double correctionValue = 1.0 / 2.2) {
-	for (Color& c : image) {
+void inline gammaCorrection(std::vector<Color>& image, double correctionValue = 1.0 / 2.2) noexcept {
+	std::for_each(std::execution::par_unseq, image.begin(), image.end(), [correctionValue](Color& c) {
 		c.vec_ = glm::pow(c.vec_, decltype(c.vec_)(correctionValue));
-	}
+		});
+}
+
+std::vector<Color> Renderer::render2() {
+
+	std::vector<std::size_t> samples(renderParams_.samplesPerPixel);
+	std::iota(samples.begin(), samples.end(), 1u);
+
+	const auto binaryReduce = [this](std::vector<Color>&& lhs, std::vector<Color>&& rhs) {
+		std::transform(lhs.begin(), lhs.end(), rhs.begin(), lhs.begin(), [](const auto& a, const auto& b) {return a + b; });
+		return lhs;
+	};
+	const auto unaryOp = [this](std::size_t sample) {return generateRenderJob(sample)(); };
+
+	auto rawPixels = std::transform_reduce(std::execution::par_unseq, samples.begin(), samples.end(), std::vector<Color>(renderParams_.sizeX * renderParams_.sizeY), binaryReduce, unaryOp);
+	gammaCorrection(rawPixels);
+	return std::move(rawPixels);
 }
 
 std::vector<Color> Renderer::render() {
 	const auto numCores = std::thread::hardware_concurrency();
 	auto threadPool = ThreadPool(numCores);
+
 	std::vector<std::future<std::vector<Color>>> results;
 	results.reserve(numCores);
-
-	const auto addSample = [&](const std::vector<Color>&& sample) noexcept {
-		for (std::size_t i = 0; i < pixels_.size(); ++i) {
-			pixels_[i] += sample[i] / renderParams_.samplesPerPixel;
-		}
-	};
+	
 	auto samplesDone = 0u;
 	auto samplesLeft = renderParams_.samplesPerPixel;
 	auto pct = (100 * samplesDone) / renderParams_.samplesPerPixel;
 	const auto checkFutureStatus = [](auto& f) {return f.wait_for(std::chrono::milliseconds(1)) == std::future_status::ready; };
+
+	std::vector<Color> pixels_(renderParams_.sizeX * renderParams_.sizeY);
+	const auto addSample = [&](const std::vector<Color>&& sample) noexcept {
+		std::transform(pixels_.begin(), pixels_.end(), sample.begin(), pixels_.begin(), std::plus<Color>());
+
+	/*	for (std::size_t i = 0; i < pixels_.size(); ++i) {
+			pixels_[i] += sample[i];
+		}*/
+	};
 	const auto applyFutures = [&]() {
 		auto it = std::find_if(results.begin(), results.end(), checkFutureStatus);
 		while (it != results.end())
