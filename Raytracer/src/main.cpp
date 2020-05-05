@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 	pixels.reserve(maxx * maxy);
 	{
 		auto timer{ Timer<std::chrono::milliseconds>(&time) };
-		pixels = renderer.render();
+		pixels = std::move(renderer.render());
 	}
 	spdlog::info("Rendering took {} Seconds.", time * 1. / 1000);
 

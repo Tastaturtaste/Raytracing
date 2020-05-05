@@ -24,7 +24,7 @@ public:
 
 	[[nodiscard]] constexpr glm::dvec3 getVec() const { return vec_; }
 
-	[[nodiscard]] constexpr norm3 operator-() { 
+	[[nodiscard]] constexpr norm3 operator-() const { 
 		return knownNormal(-vec_);
 	}
 

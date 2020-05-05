@@ -14,7 +14,7 @@ struct Timer {
 	duration_type time{};
 	long long* p_duration = nullptr;
 
-	constexpr explicit Timer() 
+	constexpr Timer() 
 		: begin(std::chrono::high_resolution_clock::now()) {}
 	constexpr explicit Timer(int64_t* duration) 
 		: p_duration(duration),begin(std::chrono::high_resolution_clock::now())	{}
@@ -34,4 +34,8 @@ struct Timer {
 		else
 			writeTime();
 	}
+	Timer(Timer&) = delete;
+	Timer(Timer&&) = delete;
+	Timer& operator=(const Timer&) = delete;
+	Timer& operator=(Timer&&) = delete;
 };

@@ -18,7 +18,12 @@ class ThreadPool {
 
 	class Job {
 	public:
-		virtual ~Job() {};
+		Job() = default;
+		Job(const Job&) = delete;
+		Job(Job&&) = default;
+		Job& operator=(const Job&) = delete;
+		Job& operator=(Job&&) = default;
+		virtual ~Job() = default;
 		virtual void execute() = 0;
 	};
 
@@ -26,7 +31,7 @@ class ThreadPool {
 	class AnyJob : public Job {
 		std::packaged_task<RetType()> f_;
 	public:
-		AnyJob(std::packaged_task<RetType()> f) noexcept
+		AnyJob(std::packaged_task<RetType()>&& f) noexcept
 			: f_(std::move(f)) {}
 		void execute() override {
 			f_();
@@ -61,14 +66,16 @@ public:
 					if (job)
 						job->execute();
 				}
-				});
-			/*threads.back().detach();*/
+			});
 		}
 	}
-
 	ThreadPool() = delete;
+	ThreadPool(const ThreadPool&) = delete;
+	ThreadPool(ThreadPool&&) = default;
+	ThreadPool& operator=(const ThreadPool&) = delete;
+	ThreadPool& operator=(ThreadPool&&) = default;
 
-	~ThreadPool(){
+	~ThreadPool() noexcept(false){
 		if (!stopped)
 			shutdown();
 	}
@@ -104,7 +111,7 @@ public:
 				thread.join();
 			}
 		}
-		catch (std::exception& e) {
+		catch (const std::exception& e) {
 			spdlog::error("Exception in Threadpool: {}",e.what());
 			assert(false);
 		}

@@ -14,6 +14,12 @@ protected:
 
 public:
 	virtual ~Primitive() = default;
+	Primitive() = delete;
+	Primitive(const Primitive&) = default;
+	Primitive& operator=(const Primitive&) = default;
+	Primitive(Primitive&&) = default;
+	Primitive& operator=(Primitive&&) = default;
+	
 	
 	constexpr const Material& material() const noexcept { return mat_; }
 	virtual norm3 normal(const glm::dvec3& hitPos) const = 0;

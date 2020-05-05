@@ -21,18 +21,16 @@ constexpr Ray outRay(const glm::dvec3& pos, const norm3& dir) noexcept {
 Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 	if (depth > renderParams_.max_depth)
 		return {};
-	IntersectionTrace nearest{};
-	if (auto maybe_nearest = scene_.find_nearest(r); !maybe_nearest.has_value()) {
+	std::optional<IntersectionTrace> nearest = scene_.find_nearest(r);
+	if (!nearest.has_value()) {
 		//spdlog::info("No intersection found!");
 		return {};
 	}
-	else {
-		nearest = maybe_nearest.value();
-	}
+	
 	if (renderParams_.preview) {
-		const auto dif = nearest.material->diffuse_color();
-		const auto spec = nearest.material->specular_color();
-		const auto p = nearest.material->prob_diffuse();
+		const auto dif = nearest->material.diffuse_color();
+		const auto spec = nearest->material.specular_color();
+		const auto p = nearest->material.prob_diffuse();
 		return Color(
 			std::lerp(spec.r(),dif.r(),static_cast<double>(p)),
 			std::lerp(spec.g(),dif.r(),static_cast<double>(p)),
@@ -42,9 +40,9 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 
 	
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
-	if (uni(rnd) < nearest.material->prob_diffuse())
+	if (uni(rnd) < nearest->material.prob_diffuse())
 	{
-		const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest.normal);
+		const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest->normal);
 		Color result{};
 		const auto maxUSamples = depth < 1 ? renderParams_.numUSamples : 1;
 		const auto maxVSamples = depth < 1 ? renderParams_.numVSamples : 1;
@@ -56,25 +54,25 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 
 				result += radiance(
 					outRay(
-						nearest.hit_position,outbound),
+						nearest->hit_position,outbound),
 						rnd, depth + 1);
 			}
 		}
 		result = result / static_cast<double>(maxUSamples * maxVSamples);
-		return nearest.material->light_color() +
-			convolute(result, nearest.material->diffuse_color());
+		return nearest->material.light_color() +
+			convolute(result, nearest->material.diffuse_color());
 	}
 	else {
-		//const norm3 outbound = nearest.normal.reflect(r.direction());
-		/*const norm3 outbound = samples::hemispheresampleUniform(nearest.normal.reflect(r.direction()), uni(rnd) * 5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);*/
-		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest.normal.getVec())));
+		//const norm3 outbound = nearest->normal.reflect(r.direction());
+		/*const norm3 outbound = samples::hemispheresampleUniform(nearest->normal.reflect(r.direction()), uni(rnd) * 5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);*/
+		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest->normal.getVec())));
 		const norm3 outbound = samples::conesampleCosWeighted(base, 0.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
 
-		return nearest.material->light_color() +
+		return nearest->material.light_color() +
 			convolute(
 				radiance(
-					outRay(nearest.hit_position, outbound), rnd, ++depth),
-					nearest.material->specular_color());
+					outRay(nearest->hit_position, outbound), rnd, ++depth),
+					nearest->material.specular_color());
 	}
 }
 
@@ -117,7 +115,7 @@ std::vector<Color> Renderer::render2() {
 	const auto unaryOp = [this](std::size_t sample) {return generateRenderJob(sample)(); };
 
 	auto rawPixels = std::transform_reduce(std::execution::par_unseq, samples.begin(), samples.end(), std::vector<Color>(renderParams_.sizeX * renderParams_.sizeY), binaryReduce, unaryOp);
-	gammaCorrection(rawPixels);
+	//gammaCorrection(rawPixels);
 	return std::move(rawPixels);
 }
 
@@ -167,7 +165,7 @@ std::vector<Color> Renderer::render() {
 
 	} while (samplesDone < renderParams_.samplesPerPixel);
 
-	gammaCorrection(pixels_);
+	//gammaCorrection(pixels_);
 
 	return std::move(pixels_);
 }
