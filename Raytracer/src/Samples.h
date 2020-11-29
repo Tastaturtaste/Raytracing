@@ -2,7 +2,7 @@
 #include <array>
 #include "norm3.h"
 
-namespace samples {
+namespace Samples {
 
 	norm3 hemispheresampleCosWeighted(const std::array<norm3,3>& basis, double u, double v) ;
 

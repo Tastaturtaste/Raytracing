@@ -4,7 +4,7 @@
 #include <mutex>
 
 
-namespace samples {
+namespace Samples {
 
 	norm3 transform(const std::array<norm3, 3>& basis, const glm::dvec3& vec) {
 		return norm3(basis[0].getVec() * vec.x + basis[1].getVec() * vec.y + basis[2].getVec() * vec.z);

@@ -24,7 +24,7 @@ namespace TracerTest
 		SampleTest() : rnd(std::mt19937(rd())) {}
 		TEST_METHOD(TestHemisphereSampleAverage)
 		{
-			using namespace samples;
+			using namespace Samples;
 			constexpr auto NumSamples = 100000;
 
 			std::uniform_real_distribution uni(0.0, 1.0);
@@ -41,7 +41,7 @@ namespace TracerTest
 		}
 		TEST_METHOD(TestHemisphereSampleZoneCount)
 		{
-			using namespace samples;
+			using namespace Samples;
 			constexpr auto NumSamples = 100000;
 
 			std::uniform_real_distribution uni(0.0,1.0);
@@ -84,7 +84,7 @@ namespace TracerTest
 			Assert::IsTrue(std::abs(2 * vAvg) - 1.0 < onePct);
 		}
 		TEST_METHOD(TestHemisphereSampleStratifiedAverage) {
-			using namespace samples;
+			using namespace Samples;
 			constexpr auto NumSamples = 10000u;
 			std::uniform_real_distribution uni(0.0, 1.0);
 
@@ -99,7 +99,7 @@ namespace TracerTest
 					for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
 						const double u = (uSample + uni(rnd)) / maxUSamples;
 						const double v = (vSample + uni(rnd)) / maxVSamples;
-						const norm3 outbound = samples::hemispheresampleCosWeighted(basis, u, v);
+						const norm3 outbound = Samples::hemispheresampleCosWeighted(basis, u, v);
 
 						avg += outbound.getVec();
 					}

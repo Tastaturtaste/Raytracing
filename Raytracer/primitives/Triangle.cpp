@@ -24,6 +24,6 @@ std::optional<IntersectionTrace> Triangle::intersect(const Ray& r) const noexcep
 	isRight.set(0, glm::dot(N,glm::cross(leg<0, 1>(),pv0)) < 0);
 	isRight.set(1, glm::dot(N, glm::cross(leg<1, 2>(), pv1)) < 0);
 	isRight.set(2, glm::dot(N, glm::cross(leg<2, 0>(), pv2)) < 0);
-	if (isRight.none()) return {};
-	return IntersectionTrace(false, normal_, hitPoint, t, material());
+	if (isRight.none()) return IntersectionTrace(false, normal_, hitPoint, t, material());
+	return {};
 }

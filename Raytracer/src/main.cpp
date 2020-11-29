@@ -1,6 +1,7 @@
 #include "Color.h"
 #include <chrono>
 #include "Scene.h"
+#include "Ray.h"
 #include "Renderer.h"
 #include "pngwriter.h"
 #include "spdlog\spdlog.h"
@@ -28,7 +29,10 @@ int main(int argc, char* argv[]) {
 	//Renderer renderer(Scene::hull_sphere(), renderParams);
 	// Renderer renderer(Scene::debug_scene(), renderParams);
 	// Renderer renderer(Scene::light_distribution(), renderParams);
-	Renderer renderer(Scene::basic_scene(), renderParams);
+
+
+	auto const scene = basic_scene_with_triangle();
+	Renderer renderer(scene, renderParams);
 
 	int64_t time{};
 	std::vector<Color> pixels;
