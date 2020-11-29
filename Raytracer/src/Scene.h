@@ -22,7 +22,7 @@ public:
 	[[nodiscard]] constexpr auto& spheres() const noexcept { return spheres_; }
 
 	void add_sphere(Sphere sphere) { spheres_.push_back(std::move(sphere)); }
-	std::optional<IntersectionTrace> find_nearest (const Ray& r) const;
+	[[nodiscard]] std::optional<IntersectionTrace> find_nearest (const Ray& r) const;
 
 	[[nodiscard]] constexpr norm3 basisX() const noexcept { return basisX_; }
 	[[nodiscard]] constexpr norm3 basisY() const noexcept { return basisY_; }
