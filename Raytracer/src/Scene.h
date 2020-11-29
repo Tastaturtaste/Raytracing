@@ -7,6 +7,7 @@
 #include "Material.h"
 #include "IntersectionTrace.h"
 
+
 class Scene
 {
 	std::vector<Sphere> spheres_{};

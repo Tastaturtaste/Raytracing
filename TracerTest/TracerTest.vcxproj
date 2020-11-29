@@ -179,7 +179,6 @@
     </ClCompile>
     <ClCompile Include="SampleTest.cpp" />
     <ClCompile Include="SphereTest.cpp" />
-    <ClCompile Include="TriangleTest.cpp" />
     <ClCompile Include="VecTest.cpp" />
   </ItemGroup>
   <ItemGroup>
