@@ -20,12 +20,11 @@ namespace TracerTest
 		TEST_METHOD(TestIntersect)
 		{
 			glm::dvec3 c = { 0.0,0.0,0.0 };
-			std::vector<Sphere> spheres({ Sphere(c,1.0,Material::green_diffuse()) });
 			glm::dvec3 o = { 2,2,2 };
 			norm3 d = norm3(c - o);
 			Ray r = { o,d };
-			Scene scene(spheres);
-			auto inter = scene.spheres().at(0).intersect(r);
+			Scene<Sphere> scene({ Sphere(c,1.0,Material::green_diffuse()) });
+			auto inter = scene.find_nearest(r);
 			Assert::IsTrue(inter.has_value());
 		}
 	};

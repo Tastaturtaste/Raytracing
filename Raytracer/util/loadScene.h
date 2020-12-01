@@ -1,38 +1,43 @@
 #pragma once
-#include <string>
+#include <string_view>
 #include <fstream>
 #include <vector>
+#include <algorithm>
+#include <charconv>
+#include "glm\glm.hpp"
 #include "ctre.hpp"
 
 namespace Tracer {
-	static constexpr ctll::fixed_string tokenRe{ R"(\s*((#.*)|[^ \t\n\r#]+))" };
+	constexpr auto comment_re = ctll::fixed_string{ R"(.*?#.*)" };
+	constexpr auto vertex_re = ctll::fixed_string{ R"(^v\s+(.+)\s+(.+)\s+(.+)\.*)" };
+	constexpr auto texture_re = ctll::fixed_string{ R"(^vt\s+(.+)\s+(.+)\.*)" };
+	constexpr auto normal_re =  ctll::fixed_string{ R"(^vn\s+(.+)\s+(.+)\s+(.+)\.*)" };
 
-    template <typename F>
-    void parse(std::istream& in, F&& handler) {
-        std::string lineAsString;
-        int lineNumber = 0;
-        while (std::getline(in, lineAsString)) {
-            lineNumber++;
-            std::string_view line(lineAsString);
-
-            std::vector<std::string_view> fields;
-            for (auto match : ctre::range<tokenRe>(line)) {
-                if (!match)
-                    break;
-                auto view = match.get<1>().to_view();
-                if (view[0] != '#')
-                    fields.emplace_back(view);
-            }
-
-            if (fields.empty())
-                continue;
-
-            auto command = fields.front();
-            fields.erase(fields.begin());
-            if (!handler(command, fields)) {
-                throw std::runtime_error("Unknown directive '" + std::string(command)
-                    + "' on line " + std::to_string(lineNumber));
-            }
-        }
-    }
+	template<class T = double>
+	glm::vec<3, T> parse_vertex(std::string_view line) {
+		auto [sv, sv1, sv2, sv3] = ctre::match<vertex_re>(line);
+		glm::vec<3, T> vec{};
+		std::from_chars(sv1.to_view().data(), sv1.to_view().data() + sv1.size(), vec[0]);
+		std::from_chars(sv2.to_view().data(), sv2.to_view().data() + sv1.size(), vec[1]);
+		std::from_chars(sv3.to_view().data(), sv3.to_view().data() + sv1.size(), vec[2]);
+		return vec;
+	}
+	template<class T = double>
+	glm::vec<3, T> parse_texture(std::string_view line) {
+		auto [sv, sv1, sv2, sv3] = ctre::match<texture_re>(line);
+		glm::vec<3, T> vec{};
+		std::from_chars(sv1.to_view().data(), sv1.to_view().data() + sv1.size(), vec[0]);
+		std::from_chars(sv2.to_view().data(), sv2.to_view().data() + sv1.size(), vec[1]);
+		std::from_chars(sv3.to_view().data(), sv3.to_view().data() + sv1.size(), vec[2]);
+		return vec;
+	}
+	template<class T = double>
+	glm::vec<3, T> parse_normal(std::string_view line) {
+		auto [sv, sv1, sv2, sv3] = ctre::match<normal_re>(line);
+		glm::vec<3, T> vec{};
+		std::from_chars(sv1.to_view().data(), sv1.to_view().data() + sv1.size(), vec[0]);
+		std::from_chars(sv2.to_view().data(), sv2.to_view().data() + sv1.size(), vec[1]);
+		std::from_chars(sv3.to_view().data(), sv3.to_view().data() + sv1.size(), vec[2]);
+		return vec;
+	}
 }
