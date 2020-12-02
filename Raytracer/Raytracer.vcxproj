@@ -155,7 +155,6 @@
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Samples.cpp" />
-    <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="primitives\Sphere.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="primitives\Triangle.cpp" />
@@ -172,6 +171,7 @@
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="primitives\Sphere.h" />
     <ClInclude Include="primitives\Triangle.h" />
+    <ClInclude Include="util\func_ref.h" />
     <ClInclude Include="util\ThreadPool.h" />
     <ClInclude Include="util\Constants.h" />
     <ClInclude Include="util\loadScene.h" />
