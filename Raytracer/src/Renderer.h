@@ -6,10 +6,6 @@
 #include <algorithm>
 #include <functional>
 
-class Color;
-class Ray;
-class IntersectionTrace;
-
 struct RenderParams {
 	unsigned int numUSamples{ 4 };
 	unsigned int numVSamples{ 4 };
