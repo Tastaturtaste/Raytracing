@@ -3,7 +3,7 @@
 #include <bitset>
 #include <glm\glm.hpp>
 
-std::optional<IntersectionTrace> Triangle::intersect(const Ray& r) const noexcept {
+std::optional<IntersectionTrace> Triangle::intersect_impl(const Ray& r) const noexcept {
 	// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution
 
 	const glm::dvec3 N = glm::cross(leg<0,1>(),leg<0,2>());	// not normalized!
@@ -24,6 +24,8 @@ std::optional<IntersectionTrace> Triangle::intersect(const Ray& r) const noexcep
 	isRight.set(0, glm::dot(N,glm::cross(leg<0, 1>(),pv0)) < 0);
 	isRight.set(1, glm::dot(N, glm::cross(leg<1, 2>(), pv1)) < 0);
 	isRight.set(2, glm::dot(N, glm::cross(leg<2, 0>(), pv2)) < 0);
-	if (isRight.none()) return IntersectionTrace(false, normal_, hitPoint, t, material());
-	return {};
+	if (isRight.none()) 
+		return { {  .hit_position = hitPoint, .normal = normal_, .distance = t, .material = material(), .inside = false } };
+	else
+		return {};
 }

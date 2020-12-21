@@ -39,7 +39,7 @@ std::optional<IntersectionTrace> Scene<Geometries...>::find_nearest(const Ray& r
 	std::optional<IntersectionTrace> nearest;
 	double min_dist = std::numeric_limits<double>::infinity();
 	for (const Geometry& geometry : geometries_) {
-		auto temp = std::visit([&r](auto const& g) {
+		auto temp = std::visit([&r](auto const& g) noexcept {
 			return g.intersect(r);
 			}, geometry);
 		//auto temp = sphere.intersect(r);
@@ -50,6 +50,8 @@ std::optional<IntersectionTrace> Scene<Geometries...>::find_nearest(const Ray& r
 	}
 	return nearest;
 }
+
+namespace Scenes {
 
 inline Scene<Sphere> basic_scene()
 {
@@ -67,10 +69,10 @@ inline Scene<Sphere> basic_scene()
 		});
 }
 
-inline Scene<Sphere,Triangle> basic_scene_with_triangle()
+inline Scene<Sphere, Triangle> basic_scene_with_triangle()
 {
 	constexpr double greyval = 0.2;
-	return Scene<Sphere,Triangle>({
+	return Scene<Sphere, Triangle>({
 	Sphere(glm::dvec3(1e5,		0.5,		0.5),		1e5, Material::grey_diffuse(greyval)),		// left wall
 	Sphere(glm::dvec3(-1e5 + 1.0,	0.5,		0.5),		1e5, Material::grey_diffuse(greyval)),		// right wall
 	Sphere(glm::dvec3(0.5,		0.5,		-1e5 + 1),	1e5, Material::grey_diffuse(greyval)),		// ceiling
@@ -116,3 +118,5 @@ inline Scene<Sphere,Triangle> basic_scene_with_triangle()
 //		Sphere(glm::dvec3(0.5,0.5,0.8),	0.1,	Material::grey_diffuse(0.6))			// gray sphere top
 //		});
 //}
+
+} // Scenes

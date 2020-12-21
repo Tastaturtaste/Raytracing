@@ -5,17 +5,9 @@
 #include <glm\glm.hpp>
 
 struct IntersectionTrace {
-	bool inside{ false };
-	norm3 normal{norm3::xAxis()};
-	glm::dvec3 hit_position{};
+	glm::dvec3 hit_position;
+	norm3 normal;
 	double distance{};
-	const Material& material;
-	
-	constexpr IntersectionTrace(bool inside, const norm3& normal, const glm::dvec3& hit_position, double distance, const Material& mat) noexcept
-		: inside(inside), normal(normal), hit_position(hit_position), distance(distance), material(mat) {}
-	constexpr IntersectionTrace(const IntersectionTrace& in) = delete;
-	constexpr IntersectionTrace& operator=(IntersectionTrace&) = delete;
-	constexpr IntersectionTrace(IntersectionTrace&& in) = default;
-	constexpr IntersectionTrace& operator=(IntersectionTrace&&) = delete;
-	~IntersectionTrace() = default;
+	Material const* material{ nullptr };
+	bool inside{ false };
 };

@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 	// Renderer renderer(Scene::light_distribution(), renderParams);
 
 
-	auto const scene = basic_scene();
+	auto const scene = Scenes::basic_scene();
 	Renderer renderer([&scene](Ray const& r) { return scene.find_nearest(r); }, renderParams);
 
 	int64_t time{};

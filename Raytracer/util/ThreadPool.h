@@ -10,7 +10,7 @@
 
 namespace ThreadPool_ {
 	template<class F>
-	concept returnsJob = requires(F f) { f()->std::function<void()>; };
+	concept returnsJob = requires(F f) { {f()}->std::convertible_to<std::function<void()>>; };
 }
 
 
