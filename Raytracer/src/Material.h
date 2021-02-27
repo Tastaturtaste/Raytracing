@@ -11,7 +11,6 @@ class Material
 public:
 	constexpr Material(Color diff_color, Color spec_color, Color light_color, double prob_diffuse) noexcept
 		: diffuse_color_(diff_color), specular_color_(spec_color), light_color_(light_color), prob_diffuse_(prob_diffuse) {}
-	constexpr Material() = default;
 
 	constexpr Color diffuse_color() const noexcept { return diffuse_color_; }
 	constexpr Color specular_color() const noexcept { return specular_color_; }
@@ -26,3 +25,6 @@ public:
 		return Material(Color( greyVal, greyVal, greyVal ), Color( greyVal,greyVal,greyVal ), {}, 1.0f); 
 	}
 };
+
+static_assert(std::is_copy_constructible_v<Material>, "Material not copy constructible!");
+static_assert(std::is_copy_assignable_v<Material>, "Material not copy assignable!");

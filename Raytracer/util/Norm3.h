@@ -19,10 +19,10 @@ class norm3
 	constexpr static norm3 knownNormal(const glm::dvec3& vec) { return norm3(vec.x,vec.y,vec.z); }
 	friend Sphere;
 public:
-	constexpr norm3(norm3 const&) = default;
-	constexpr norm3(norm3&&) = default;
-	norm3& operator= (norm3 const&) = default;
-	norm3& operator=(norm3&&) = default;
+	//constexpr norm3(norm3 const&) = default;
+	//constexpr norm3(norm3&&) = default;
+	//norm3& operator= (norm3 const&) = default;
+	//norm3& operator=(norm3&&) = default;
 	explicit norm3(const glm::dvec3& v)
 		: vec_{ glm::normalize(v) } {};
 

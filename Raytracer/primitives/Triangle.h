@@ -5,19 +5,19 @@
 #include <array>
 #include <glm\vec3.hpp>
 #include "Ray.h"
-#include "GeometryPrimitive.h"
+#include "BasicGeometry.h"
 #include "Constants.h"
 
 
-class Triangle : public GeometryPrimitive<Triangle>
+class Triangle : public BasicGeometry<Triangle>
 {
-	friend class GeometryPrimitive<Triangle>;
+	friend class BasicGeometry<Triangle>;
 	std::array<glm::dvec3, 3> vertices_{};
 	norm3 normal_{ norm3::xAxis() };
 
 public:
 	Triangle(std::array<glm::dvec3, 3> vertices, Material mat) 
-		: GeometryPrimitive{ mat }, vertices_(vertices){
+		: BasicGeometry{ mat }, vertices_(vertices){
 		auto leg1{ vertices_[0] - vertices_[1] };
 		auto leg2{ vertices_[0] - vertices_[2] };
 		if (glm::dot(leg1,leg1) < constants::EPS)
@@ -27,7 +27,7 @@ public:
 		normal_ = norm3(glm::cross(leg1,leg2));
 	}
 	constexpr Triangle(std::array<glm::dvec3, 3> vertices, Material mat, norm3 normal) noexcept
-		: GeometryPrimitive{ mat }, vertices_(vertices), normal_(normal){}
+		: BasicGeometry{ mat }, vertices_(vertices), normal_(normal){}
 
 	norm3 normal([[maybe_unused]] const glm::dvec3& hitPos) const noexcept {
 		return normal_;
@@ -40,3 +40,7 @@ public:
 
 	std::optional<IntersectionTrace> intersect_impl(const Ray&) const noexcept;
 };
+
+static_assert(std::is_copy_constructible_v<Triangle>, "Triangle not copy constructible!");
+static_assert(std::is_copy_assignable_v<Triangle>, "Triangle not copy assignable!");
+static_assert(std::is_base_of_v<BasicGeometry<Triangle>, Triangle>, "Triangle is not a BasicGeometry!");

@@ -83,10 +83,13 @@
     <ClInclude Include="util\ThreadPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="primitives\GeometryPrimitive.h">
+    <ClInclude Include="util\func_ref.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util\func_ref.h">
+    <ClInclude Include="primitives\Geometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="primitives\BasicGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
