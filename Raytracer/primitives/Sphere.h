@@ -9,6 +9,7 @@
 
 class Sphere : public GeometryPrimitive<Sphere>
 {
+	friend class GeometryPrimitive<Sphere>;
 	const glm::dvec3 origin_{};
 	const double radius_{};
 public:
@@ -19,7 +20,7 @@ public:
 	norm3 normal(const glm::dvec3& hitPos) const noexcept { 
 		return norm3::knownNormal((hitPos - origin_) / radius_); 
 	}
-
-	std::optional<IntersectionTrace> intersect(const Ray& r) const noexcept;
+private:
+	std::optional<IntersectionTrace> intersect_impl(const Ray& r) const noexcept;
 };
 

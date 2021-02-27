@@ -11,6 +11,7 @@
 
 class Triangle : public GeometryPrimitive<Triangle>
 {
+	friend class GeometryPrimitive<Triangle>;
 	std::array<glm::dvec3, 3> vertices_{};
 	norm3 normal_{ norm3::xAxis() };
 
@@ -37,5 +38,5 @@ public:
 	constexpr glm::dvec3 vert() const { return vertices_[i]; }
 
 
-	std::optional<IntersectionTrace> intersect(const Ray&) const noexcept;
+	std::optional<IntersectionTrace> intersect_impl(const Ray&) const noexcept;
 };

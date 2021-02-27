@@ -10,15 +10,15 @@
 template<class Derived>
 class GeometryPrimitive {
 public:
-	constexpr const Material& material() const noexcept { return mat_; }
-	norm3 normal(const glm::dvec3& hitPos) const noexcept { get_impl().normal(hitPos); }
-	std::optional<IntersectionTrace> intersect(const Ray& ray) const noexcept { get_impl().intersect(ray); }
+	constexpr Material const* material() const noexcept { return &mat_; }
+	norm3 normal(const glm::dvec3& hitPos) const noexcept { return get_impl().normal(hitPos); }
+	std::optional<IntersectionTrace> intersect(const Ray& ray) const noexcept { return get_impl().intersect_impl(ray); }
 protected:
 	constexpr GeometryPrimitive(Material mat) noexcept
 		: mat_(mat) {}
 	Material mat_{};
 private:
-	constexpr Derived& get_impl() const noexcept {
-		return *static_cast<Derived&>(*this);
+	constexpr Derived const& get_impl() const noexcept {
+		return static_cast<Derived const&>(*this);
 	}
 };
