@@ -15,6 +15,9 @@ struct RenderParams {
 	double FOV{ 90 };
 	std::size_t sizeX{ 720 };
 	std::size_t sizeY{ 480 };
+	glm::dvec3 camPosition{ 0.5, 0.05, 0.5 };
+	glm::dvec3 camMotive{ 0.5, 0.5, 0.5 };
+	norm3 camUp{ norm3::zAxis() };
 };
 
 class Renderer
@@ -32,7 +35,7 @@ class Renderer
 public:
 	Renderer(func_ref<intersecfn> f, const RenderParams& renderParams)
 		: find_nearest(f), renderParams_(renderParams), normalizer_(1. / renderParams.sizeX),
-		cam_(Camera(renderParams.sizeX, renderParams.sizeY, glm::dvec3( 0.5,0.05,0.5 ), glm::dvec3( 0.5,0.5,0.5 ),norm3::zAxis(), renderParams.FOV * constants::pi / 180)) {}
+		cam_(Camera(renderParams.sizeX, renderParams.sizeY, renderParams.camPosition, renderParams.camMotive,renderParams.camUp, renderParams.FOV * constants::pi / 180)) {}
 
 	std::vector<Color> render();
 	std::vector<Color> render2();

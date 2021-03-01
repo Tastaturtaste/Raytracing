@@ -1,0 +1,8 @@
+mtllib debugmtl.mtl
+
+## Flat triangle
+usemtl light
+v -1.0 0.0 0.0
+v 1.0 0.0 0.0
+v 0.0 2.0 0.0
+f -3 -2 -1

@@ -26,19 +26,11 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 	}
 
 	if (renderParams_.preview) {
-		const auto dif = nearest->material->diffuse_color();
-		const auto spec = nearest->material->specular_color();
-		const auto p = nearest->material->prob_diffuse();
-		return Color(
-			std::lerp(spec.r(), dif.r(), static_cast<double>(p)),
-			std::lerp(spec.g(), dif.r(), static_cast<double>(p)),
-			std::lerp(spec.b(), dif.b(), static_cast<double>(p))
-		);
+		return nearest->material->diffuse_color;
 	}
 
-
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
-	if (uni(rnd) < nearest->material->prob_diffuse())
+	if (uni(rnd) < nearest->material->prob_diffuse)
 	{
 		const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest->normal);
 		Color result{};
@@ -57,20 +49,18 @@ Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
 			}
 		}
 		result = result / static_cast<double>(maxUSamples * maxVSamples);
-		return nearest->material->light_color() +
-			convolute(result, nearest->material->diffuse_color());
+		return nearest->material->light_color +
+			convolute(result, nearest->material->diffuse_color);
 	}
 	else {
-		//const norm3 outbound = nearest->normal.reflect(r.direction());
-		/*const norm3 outbound = Samples::hemispheresampleUniform(nearest->normal.reflect(r.direction()), uni(rnd) * 5.0 / 180.0 * constants::pi, uni(rnd) * 2 * constants::pi);*/
 		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest->normal.getVec())));
-		const norm3 outbound = Samples::conesampleCosWeighted(base, 0.0 / 180.0 * constants::pi, uni(rnd), uni(rnd));
+		const norm3 outbound = Samples::conesampleCosWeighted(base, nearest->material->reflection_cone_radians, uni(rnd), uni(rnd));
 
-		return nearest->material->light_color() +
+		return nearest->material->light_color +
 			convolute(
 				radiance(
 					outRay(nearest->hit_position, outbound), rnd, ++depth),
-				nearest->material->specular_color());
+				nearest->material->diffuse_color);
 	}
 }
 

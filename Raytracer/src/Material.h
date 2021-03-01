@@ -1,28 +1,32 @@
 #pragma once
 #include "Color.h"
+#include "Constants.h"
 
-class Material
+struct Material
 {
-	Color diffuse_color_{};
-	Color specular_color_{};
-	Color light_color_{};
-	double prob_diffuse_{};
+	Color diffuse_color{};
+	Color light_color{};
+	double prob_diffuse{1.0};
+	double reflection_cone_radians{0.0};
 
-public:
-	constexpr Material(Color diff_color, Color spec_color, Color light_color, double prob_diffuse) noexcept
-		: diffuse_color_(diff_color), specular_color_(spec_color), light_color_(light_color), prob_diffuse_(prob_diffuse) {}
+	constexpr Material() = default;
+	constexpr Material(Color diff_color, Color light_color, double prob_diffuse, double reflection_cone_radians) noexcept
+		: diffuse_color(diff_color), light_color(light_color), prob_diffuse(prob_diffuse), reflection_cone_radians(reflection_cone_radians) {}
 
-	constexpr Color diffuse_color() const noexcept { return diffuse_color_; }
-	constexpr Color specular_color() const noexcept { return specular_color_; }
-	constexpr Color light_color() const noexcept { return light_color_; }
-	constexpr double prob_diffuse() const noexcept { return prob_diffuse_; }
-
-	static Material white_light(double power) noexcept { return Material({}, {}, Color( power,power,power ), 1.0f); }
-	static Material green_diffuse() noexcept { return Material(Color( 0.1,0.4,0.1 ), Color( 0.1,0.4,0.1 ), {}, 0.9f); }
-	static Material red_shiny() noexcept { return Material(Color( 0.8,0.2,0.2 ), Color( 0.8,0.2,0.2 ), {}, 0.1f); }
-	static Material mirror() noexcept { return Material(Color( 0.999,0.999,0.999 ), Color( 0.999,0.999,0.999 ), {}, 0.0f); }
-	static Material grey_diffuse(double greyVal) noexcept { 
-		return Material(Color( greyVal, greyVal, greyVal ), Color( greyVal,greyVal,greyVal ), {}, 1.0f); 
+	static Material white_light(double power) noexcept { 
+		return { {}, Color(power,power,power), 1.0, constants::pi }; 
+	}
+	static Material green_diffuse() noexcept {
+		return { Color(0.1,0.4,0.1), {}, 0.9, constants::pi / 2.};
+	}
+	static Material red_shiny() noexcept { 
+		return { Color(0.8,0.2,0.2), {}, 0.1, constants::pi / 8. };
+		}
+	static Material mirror() noexcept { 
+		return { Color(0.999,0.999,0.999), {}, 0.0, 0.0 };
+		}
+	static Material grey_diffuse(double greyVal = 0.2) noexcept { 
+		return { Color(greyVal, greyVal, greyVal), {}, 0.9, constants::pi / 2.};
 	}
 };
 

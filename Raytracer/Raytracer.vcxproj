@@ -160,6 +160,8 @@
     <ClCompile Include="primitives\Sphere.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="primitives\Triangle.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="util\loadScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="primitives\Geometry.h" />

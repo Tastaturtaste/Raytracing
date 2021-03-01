@@ -13,7 +13,7 @@ class Sphere : public BasicGeometry<Sphere>
 	glm::dvec3 origin_{};
 	double radius_{};
 public:
-	constexpr Sphere(const glm::dvec3& origin, double radius, const Material& mat)
+	constexpr Sphere(const glm::dvec3& origin, double radius, Material const* mat)
 		: BasicGeometry{ mat }, origin_(origin), radius_(radius) {}
 	constexpr auto origin() const noexcept { return origin_; }
 	constexpr auto radius() const { return radius_; }

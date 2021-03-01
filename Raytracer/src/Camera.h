@@ -30,6 +30,7 @@ public:
 	[[nodiscard]] norm3 getRayDirection(std::size_t X, std::size_t Y, std::mt19937& rnd) const;
 
 	[[nodiscard]] inline Ray getRay(std::size_t X, std::size_t Y, std::mt19937& rnd) const {
-		return { eye_,getRayDirection(X,Y,rnd) };
+		Ray ray{ eye_,getRayDirection(X,Y,rnd) };
+		return ray;
 	}
 };

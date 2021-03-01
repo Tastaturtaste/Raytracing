@@ -9,12 +9,12 @@
 template<class Derived>
 class BasicGeometry {
 public:
-	constexpr Material const* material() const noexcept { return &mat_; }
+	constexpr Material const* material() const noexcept { return mat_; }
 	norm3 normal(const glm::dvec3& hitPos) const noexcept { return get_impl().normal(hitPos); }
 	std::optional<IntersectionTrace> intersect(const Ray& ray) const noexcept { return get_impl().intersect_impl(ray); }
 protected:
-	constexpr BasicGeometry(Material mat) noexcept : mat_(std::move(mat)) {}
-	Material mat_{};
+	constexpr BasicGeometry(Material const* mat) noexcept : mat_(std::move(mat)) {}
+	Material const* mat_{};
 private:
 	constexpr Derived const& get_impl() const noexcept {
 		return static_cast<Derived const&>(*this);

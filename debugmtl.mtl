@@ -1,0 +1,9 @@
+newmtl diffuse_green
+Ns 10.0
+Kd 0.2 0.2 0.2
+Ke 0.0 0.0 0.0
+
+newmtl light
+Ns 10.0
+Kd 1.0 1.0 1.0
+Ke 50 50 50
