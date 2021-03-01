@@ -98,5 +98,8 @@
     <ClInclude Include="primitives\BasicGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="util\utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

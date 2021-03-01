@@ -1,15 +1,18 @@
-#include "Color.h"
 #include <chrono>
 #include <charconv>
+#include <fstream>
+
+#include "pngwriter.h"
+#include "spdlog\spdlog.h"
+#include "argparse\argparse.hpp"
+
 #include "Scene.h"
+#include "Color.h"
 #include "loadScene.h"
 #include "Ray.h"
 #include "Renderer.h"
-#include "pngwriter.h"
-#include "spdlog\spdlog.h"
 #include "Timer.h"
-#include "argparse\argparse.hpp"
-#include <fstream>
+#include "utilities.h"
 
 
 int main(int argc, char* argv[]) {
@@ -20,23 +23,44 @@ int main(int argc, char* argv[]) {
 	constexpr std::size_t default_height = 480;
 
 	argparse::ArgumentParser program("raytracer");
-	program.add_argument("-width").help("Width of the image").action([](std::string_view value) { 
-		std::size_t i;
-		auto [pos, ec] = std::from_chars(value.data(), value.data() + value.size(), i);
-		if (ec == std::errc{}) {
-			throw std::runtime_error("value for parameter width not valid!");
-		}
-		return i; 
-		}).default_value(default_width);
-	program.add_argument("-height").help("Height of the image").action([](std::string_view value) { 
-		std::size_t i;
-		auto [pos, ec] = std::from_chars(value.data(), value.data() + value.size(), i);
-		if (ec == std::errc{}) {
-			throw std::runtime_error("value for parameter height not valid!");
-		}
-		return i;
-		}).default_value(default_height);
-		program.add_argument("objfile").help("The obj file describing the scene").default_value(std::string(""));
+	program.add_argument("objfile").help("The obj file describing the scene").action([](std::string_view sv) -> std::string { return std::string(sv); });// .default_value(std::string(""));
+	program.add_argument("-spp", "--sampled-per-pixel").help("samples per pixel").default_value(100).action([](std::string_view sv) {
+		int const n = asNumber<int>(sv);
+		if (n < 0)
+			throw std::runtime_error("argument for number of samples per pixel not valid!");
+		return n;
+		});
+	program.add_argument("-pv", "--preview").help("If a preview without global illumination should be generated.").implicit_value(true).default_value(false);
+	program.add_argument("-split-u", "--num-first-bounce-splits-u").help("Number of rays generated for one coordinate on first hit.").default_value(4).action([](std::string_view sv) {
+		int const n = asNumber<int>(sv);
+		if (n < 1)
+			throw std::runtime_error("Argument for number of first bounce splits not valid!");
+		return n;
+		});
+	program.add_argument("-split-v", "--num-first-bounce-splits-v").help("Number of rays generated for one coordinate on first hit.").default_value(4).action([](std::string_view sv) {
+		int const n = asNumber<int>(sv);
+		if (n < 1)
+			throw std::runtime_error("Argument for number of first bounce splits not valid!");
+		return n;
+		});
+	program.add_argument("-d", "--max-depth").help("Number of bounces.").default_value(4).action([](std::string_view sv) {
+		int const n = asNumber<int>(sv);
+		if (n < 1)
+			throw std::runtime_error("Argument for number of bounces not valid!");
+		return n;
+		});
+	program.add_argument("-x", "--size-x").help("Width of the picture.").default_value(720).action([](std::string_view sv) {
+		int const n = asNumber<int>(sv);
+		if (n < 0)
+			throw std::runtime_error("Argument for width of picture not valid!");
+		return n;
+		});
+	program.add_argument("-y", "--size-y").help("Height of the picture.").default_value(480).action([](std::string_view sv) {
+		int const n = asNumber<int>(sv);
+		if (n < 0)
+			throw std::runtime_error("Argument for height of picture not valid!");
+		return n;
+		});
 
 
 	try {
@@ -44,44 +68,27 @@ int main(int argc, char* argv[]) {
 	}
 	catch (std::runtime_error const& err) {
 		spdlog::error("{}\n", err.what());
-		std::terminate();
 	}
-
-	std::size_t const maxx = program.get<std::size_t>("-width");
-	std::size_t const maxy = program.get<std::size_t>("-height");
 	std::string const obj_filename = program.get<std::string>("objfile");
+	std::size_t const maxx = program.get<int>("-x");
+	std::size_t const maxy = program.get<int>("-y");
 
-	auto png = pngwriter(maxx, maxy, 0.0, "renderimage.png");
 
-	// Cornell parameter
-	/*const RenderParams renderParams{
-		.numUSamples{4}
-		,.numVSamples{4}
-		,.preview{true}
-		,.max_depth{2}
-		,.samplesPerPixel{100}
-		,.FOV{90}
-		,.sizeX{maxx}
-		,.sizeY{maxy}
-		,.camPosition{0., 1., 3.}
-		,.camMotive{0., 1., 0.}
-		,.camUp{norm3::yAxis()}
-	};*/
-
-	// debug scene parameter
 	const RenderParams renderParams{
-		.numUSamples{4}
-		,.numVSamples{4}
-		,.preview{true}
-		,.max_depth{2}
-		,.samplesPerPixel{10}
-		,.FOV{90}
-		,.sizeX{maxx}
-		,.sizeY{maxy}
+		.numUSamples{program.get<int>("-split-u")}
+		,.numVSamples{program.get<int>("-split-v")}
+		,.preview{program.get<bool>("-pv")}
+		,.max_depth{program.get<int>("-d")}
+		,.samplesPerPixel{program.get<int>("-spp")}
+		,.FOV{45}
+		,.sizeX{program.get<int>("-x")}
+		,.sizeY{program.get<int>("-y")}
 		,.camPosition{0., 1., 3.}
 		,.camMotive{0., 1., 0.}
 		,.camUp{norm3::yAxis()}
 	};
+
+	auto png = pngwriter(renderParams.sizeX, renderParams.sizeY, 0.0, "renderimage.png");
 
 	// begin rendering
 
@@ -110,7 +117,7 @@ int main(int argc, char* argv[]) {
 
 	for (std::size_t y = 0; y < maxy; ++y) {
 		for (std::size_t x = 0; x < maxx; ++x) {
-			png.plot(static_cast<int>(x), static_cast<int>(y), pixels.at(y * maxx + x).r(), pixels.at(y * maxx + x).g(), pixels.at(y * maxx + x).b());
+			png.plot(static_cast<int>(x+1), static_cast<int>(y+1), pixels.at(y * maxx + x).r(), pixels.at(y * maxx + x).g(), pixels.at(y * maxx + x).b());
 		}
 	}
 

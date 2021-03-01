@@ -10,8 +10,8 @@ class Ray
 
 public:
 
-    constexpr Ray(const glm::dvec3& origin, const norm3& direction) noexcept
-        : origin_(origin), direction_(direction) {}
+    constexpr Ray(glm::dvec3 origin, norm3 direction) noexcept
+        : origin_(std::move(origin)), direction_(std::move(direction)) {}
     constexpr explicit Ray() noexcept
         : origin_(0.0,0.0,0.0), direction_(norm3::zAxis()) {}
 

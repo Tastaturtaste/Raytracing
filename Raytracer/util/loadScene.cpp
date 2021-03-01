@@ -14,47 +14,15 @@
 #include "Scene.h"
 #include "Geometry.h"
 #include "Material.h"
+#include "utilities.h"
 
 namespace Tracer {
-constexpr auto comment_re = ctll::fixed_string{ R"(.*?#.*)" };
-constexpr auto vertex_re = ctll::fixed_string{ R"(^v\s+(.+)\s+(.+)\s+(.+)\.*)" };
-constexpr auto texture_re = ctll::fixed_string{ R"(^vt\s+(.+)\s+(.+)\.*)" };
-constexpr auto normal_re = ctll::fixed_string{ R"(^vn\s+(.+)\s+(.+)\s+(.+)\.*)" };
-
-template<class T = double>
-T asNumber(std::string_view sv) {
-	T val;
-	auto [p, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), val);
-	if (ec != std::errc()) {
-		throw std::runtime_error("Could not convert string to number!");
-	}
-	return val;
-}
 
 template<class T = double>
 glm::vec<3, T> parse_vertex(std::span<std::string_view> tokens) {
 	return { asNumber<T>(tokens[0]), asNumber<T>(tokens[1]), asNumber<T>(tokens[2]) };
 }
-//template<class T = double>
-//glm::vec<3, T> parse_texture(std::string_view line) {
-//	auto [sv, sv1, sv2, sv3] = ctre::match<texture_re>(line);
-//	glm::vec<3, T> vec{};
-//	std::from_chars(sv1.to_view().data(), sv1.to_view().data() + sv1.size(), vec[0]);
-//	std::from_chars(sv2.to_view().data(), sv2.to_view().data() + sv2.size(), vec[1]);
-//	std::from_chars(sv3.to_view().data(), sv3.to_view().data() + sv3.size(), vec[2]);
-//	return vec;
-//}
-//template<class T = double>
-//glm::vec<3, T> parse_normal(std::string_view line) {
-//	auto [sv, sv1, sv2, sv3] = ctre::match<normal_re>(line);
-//	glm::vec<3, T> vec{};
-//	std::from_chars(sv1.to_view().data(), sv1.to_view().data() + sv1.size(), vec[0]);
-//	std::from_chars(sv2.to_view().data(), sv2.to_view().data() + sv2.size(), vec[1]);
-//	std::from_chars(sv3.to_view().data(), sv3.to_view().data() + sv3.size(), vec[2]);
-//	return vec;
-//}
 
-// TODO: Does not work if one of delims is at the end of line
 std::vector<std::string_view> splitString(std::string_view line, std::string_view delims) {
 	std::vector<std::string_view> tokens;
 	size_t tokenBegin = 0;

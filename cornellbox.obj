@@ -170,13 +170,11 @@ v	 0.23  1.98   0.16
 
 f -4 -3 -2 -1
 
-## Object frontwall (mgodbolt added)
+# Object frontwall (mgodbolt added)
 g frontWall
 usemtl backWall
-
 v  -100  -100.00  3.05
 v   100.00  -100.00  3.05
 v   100.00  100  3.05
 v  -100.02  100  3.05
-
 f -4 -3 -2 -1

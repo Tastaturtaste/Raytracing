@@ -16,8 +16,11 @@ std::optional<IntersectionTrace> Triangle::intersect_impl(const Ray& r) const no
 	// NdotRd < 0 -> ray points against normal -> ray from outside
 	if (std::abs(NdotRd) < constants::EPS)
 		return {};	// Parallel
-	const double d = glm::dot(N, vertices_[0]);
-	const double t = -(glm::dot(N, r.origin()) + d) / NdotRd;
+	const double distPlane = glm::dot(N, vertices_[0]);
+	const double distRayOrigin = glm::dot(N, r.origin());
+	const double t = (distPlane - distRayOrigin) / NdotRd;
+	//const double d = glm::dot(N, vertices_[0]);
+	//const double t = -(glm::dot(N, r.origin()) + d) / NdotRd;
 	if (t < constants::EPS) return {};	// Ray origin behind triangle
 	const glm::dvec3 hitPoint = r.positionAlong(t);
 	// check for each leg if hitpoint is on the left. Vertices are expected to be in mathmatical order / against the clock

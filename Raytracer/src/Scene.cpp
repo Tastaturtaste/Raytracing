@@ -33,16 +33,17 @@ namespace Scenes {
 			{"green_diffuse", materials.at(2).get()},
 			{"red_shiny", materials.at(3).get()}
 		};
+		constexpr double bigR = 1e5;
 		std::vector<Geometry> geometries{
-		Sphere(glm::dvec3(1e5,		0.5,		0.5),		1e5, mats.at("grey_diffuse")),		// left wall
-		Sphere(glm::dvec3(-1e5 + 1.0,	0.5,	0.5),		1e5, mats.at("grey_diffuse")),		// right wall
-		Sphere(glm::dvec3(0.5,		0.5,	-1e5 + 1),		1e5, mats.at("grey_diffuse")),		// ceiling
-		Sphere(glm::dvec3(0.5,		0.5,		1e5),		1e5, mats.at("grey_diffuse")),		// floor
-		Sphere(glm::dvec3(0.5,		-1e5 + 1,	0.5),		1e5, mats.at("grey_diffuse")),		// backwall
-		Sphere(glm::dvec3(0.5,		1e5,		0.5),		1e5, mats.at("grey_diffuse")),		// frontwall
-		Sphere(glm::dvec3(0.4,		0.2,		0.85),		0.1, mats.at("white_light")),		// lightsource
-		Sphere(glm::dvec3(0.7,		0.5,		0.2),		0.2, mats.at("green_diffuse")),		// green sphere
-		Sphere(glm::dvec3(0.2,		0.7,		0.2),		0.2, mats.at("red_shiny"))			// shine red sphere
+		Sphere(glm::dvec3(-bigR-1.,	1.,	1.),		bigR, mats.at("grey_diffuse")),		// left wall
+		Sphere(glm::dvec3( bigR+1.,	1.,	1.),		bigR, mats.at("grey_diffuse")),		// right wall
+		Sphere(glm::dvec3( 0., bigR+2.,	1.),		bigR, mats.at("grey_diffuse")),		// ceiling
+		Sphere(glm::dvec3( 0.,-bigR	,	1.),		bigR, mats.at("grey_diffuse")),		// floor
+		Sphere(glm::dvec3( 0., 1.	,-bigR),		bigR, mats.at("grey_diffuse")),		// backwall
+		//Sphere(glm::dvec3( 0., 1.,	bigR + 3.05),	bigR, mats.at("grey_diffuse")),		// frontwall
+		Sphere(glm::dvec3( 0.,	2.,		1.),		0.4, mats.at("white_light")),		// lightsource
+		Sphere(glm::dvec3(-.4,	0.4,	1.),		0.4, mats.at("green_diffuse")),		// green sphere
+		Sphere(glm::dvec3( .35,	0.3,	1.),		0.3, mats.at("red_shiny"))			// shine red sphere
 		};
 		return Scene(std::move(geometries),std::move(materials));
 	}

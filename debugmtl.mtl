@@ -1,6 +1,11 @@
 newmtl diffuse_green
 Ns 10.0
-Kd 0.2 0.2 0.2
+Kd 0.1 0.7 0.1
+Ke 0.0 0.0 0.0
+
+newmtl diffuse_red
+Ns 10.0
+Kd 0.7 0.1 0.1
 Ke 0.0 0.0 0.0
 
 newmtl light
