@@ -17,7 +17,7 @@ struct Color {
 };
 
 constexpr Color convolute(const Color& a, const Color& b) noexcept {
-	return  Color(a.r() * b.r(),a.g() * b.g(),a.b() * b.b() );
+	return Color(a.vec_ * b.vec_);
 }
 
 constexpr Color operator+(const Color& a, const Color& b) noexcept {

@@ -12,121 +12,75 @@
 #include <future>
 
 
+// Moves the outgoing ray a little bit in the ray direction to avoid instantly hitting the origin surface again
 constexpr Ray outRay(const glm::dvec3& pos, const norm3& dir) noexcept {
 	return Ray(pos + dir.getVec() * constants::EPS, dir);
 }
 
-Color Renderer::branchedRadiance(IntersectionTrace trace, std::mt19937& rnd, unsigned int depth) const {
-	const std::array<norm3, 3> base = norm3::orthogonalFromZ(trace.normal);
+inline Ray getOutray(IntersectionTrace const& trace, Ray const& incoming, std::mt19937& rnd) {
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
+	norm3 outbound{ norm3::yAxis() };
+	if (uni(rnd) < trace.material->prob_diffuse)
+	{
+		const std::array<norm3, 3> base = norm3::orthogonalFromZ(trace.normal);
+		outbound = Samples::hemispheresampleCosWeighted(base, uni(rnd), uni(rnd));
+	}
+	else
+	{
+		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(incoming.direction().getVec(), trace.normal.getVec())));
+		outbound = Samples::conesampleCosWeighted(base, trace.material->reflection_cone_radians, uni(rnd), uni(rnd));
+	}
+	return outRay(trace.hit_position, outbound);
+}
+
+Color Renderer::branchingRadiance(Ray r, std::mt19937& rnd, unsigned int depth) const {
 	Color result{};
+	std::optional<IntersectionTrace> trace = find_nearest(r);
+	if (!trace.has_value()) {
+		return result;
+	}
+	// In preview mode no bounces are made
+	else if (renderParams_.preview) {
+		return trace.value().material->diffuse_color;
+	}
+
+	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
 	const auto maxUSamples = renderParams_.numUSamples;
 	const auto maxVSamples = renderParams_.numVSamples;
 	for (auto vSample = 0u; vSample < maxVSamples; ++vSample) {
 		for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
 			const double u = (static_cast<double>(uSample) + uni(rnd)) / maxUSamples;
 			const double v = (static_cast<double>(vSample) + uni(rnd)) / maxVSamples;
-			const norm3 outbound = Samples::hemispheresampleCosWeighted(base, u, v);
-			result += radiance(
-				outRay(
-					trace.hit_position, outbound),
-				rnd, depth + 1);
+			result += radiance(trace.value(), getOutray(trace.value(), r, rnd), rnd, depth);
 		}
 	}
-	return result / static_cast<double>(maxUSamples * maxVSamples);
+	return result / maxUSamples / maxVSamples;
 }
 
-Color Renderer::radiance(Ray r, std::mt19937& rnd, unsigned int depth) const {
-	if (depth > renderParams_.maxDepth)
-		return {};
-
-	if (renderParams_.preview) {
-		std::optional<IntersectionTrace> nearest = find_nearest(r);
-		if (nearest.has_value())
-			return nearest->material->diffuse_color;
-		return {};
-	}
+Color Renderer::radiance(IntersectionTrace const& trace, Ray r, std::mt19937& rnd, unsigned int depth) const {
+	// depth == number of bounces after initial hit
 
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
 	Color result{};
 	Color convolution{1,1,1};
+	result += convolute(trace.material->light_color, convolution);
+	convolution = convolute(convolution, trace.material->diffuse_color);
 
-	while (depth <= renderParams_.maxDepth) {
-		++depth;
-		std::optional<IntersectionTrace> nearest = find_nearest(r);
+	norm3 outbound{ norm3::yAxis() }; // Initial value is not used but has to be initialized because norm3 is not default constructible
+	std::optional<IntersectionTrace> nearest{ trace };
+	for (; depth < renderParams_.maxDepth; ++depth) {
+		r = getOutray(nearest.value(), r, rnd);
+		nearest = find_nearest(r);
+		// If no material is hit no further bounces have to be made
+		// No hit counts as black
 		if (!nearest.has_value()) {
-			continue;
+			break;
 		}
-		norm3 outbound{ norm3::yAxis() };
 		result += convolute(nearest->material->light_color, convolution);
 		convolution = convolute(convolution, nearest->material->diffuse_color);
-		if (uni(rnd) < nearest->material->prob_diffuse)
-		{
-			// split only if first hit is diffuse
-			if (depth < 1) {
-				return branchedRadiance(nearest.value(), rnd, depth);
-			}
-			const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest->normal);
-			outbound = Samples::hemispheresampleCosWeighted(base, uni(rnd), uni(rnd));
-		}
-		else
-		{
-			const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest->normal.getVec())));
-			outbound = Samples::conesampleCosWeighted(base, nearest->material->reflection_cone_radians, uni(rnd), uni(rnd));
-		}
-		r = Ray(nearest->hit_position, outbound);
 	}
 	return result;
 }
-
-//Color Renderer::radiance(const Ray& r, std::mt19937& rnd, unsigned int depth) {
-//	if (depth > renderParams_.max_depth)
-//		return {};
-//	std::optional<IntersectionTrace> nearest = find_nearest(r);
-//	if (!nearest.has_value()) {
-//		//spdlog::info("No intersection found!");
-//		return {};
-//	}
-//
-//	if (renderParams_.preview) {
-//		return nearest->material->diffuse_color;
-//	}
-//
-//	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
-//
-//	if (uni(rnd) < nearest->material->prob_diffuse)
-//	{
-//		const std::array<norm3, 3> base = norm3::orthogonalFromZ(nearest->normal);
-//		Color result{};
-//		const auto maxUSamples = depth < 1 ? renderParams_.numUSamples : 1;
-//		const auto maxVSamples = depth < 1 ? renderParams_.numVSamples : 1;
-//		for (auto vSample = 0u; vSample < maxVSamples; ++vSample) {
-//			for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
-//				const double u = (static_cast<double>(uSample) + uni(rnd)) / maxUSamples;
-//				const double v = (static_cast<double>(vSample) + uni(rnd)) / maxVSamples;
-//				const norm3 outbound = Samples::hemispheresampleCosWeighted(base, u, v);
-//
-//				result += radiance(
-//					outRay(
-//						nearest->hit_position, outbound),
-//					rnd, depth + 1);
-//			}
-//		}
-//		result = result / static_cast<double>(maxUSamples * maxVSamples);
-//		return nearest->material->light_color +
-//			convolute(result, nearest->material->diffuse_color);
-//	}
-//	else {
-//		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(r.direction().getVec(), nearest->normal.getVec())));
-//		const norm3 outbound = Samples::conesampleCosWeighted(base, nearest->material->reflection_cone_radians, uni(rnd), uni(rnd));
-//
-//		return nearest->material->light_color +
-//			convolute(
-//				radiance(
-//					outRay(nearest->hit_position, outbound), rnd, ++depth),
-//				nearest->material->diffuse_color);
-//	}
-//}
 
 auto Renderer::generateRenderJob(std::size_t sample) {
 
@@ -142,7 +96,7 @@ auto Renderer::generateRenderJob(std::size_t sample) {
 			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
 				r = cam_.getRay({ x, y }, rnd);
 				//pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
-				pixels_.emplace_back(radiance(r, rnd, 0) / renderParams_.samplesPerPixel);
+				pixels_.emplace_back(branchingRadiance(r, rnd, 0u) / renderParams_.samplesPerPixel);
 			}
 		}
 		return std::move(pixels_);
@@ -201,7 +155,7 @@ std::vector<Color> Renderer::render() {
 		auto spaceInQueue = std::max<std::size_t>(threadPool.numThreads() - threadPool.numJobs(), 0u);
 		auto jobsToAdd = std::min<std::size_t>(samplesLeft, spaceInQueue);
 		for (; jobsToAdd > 0; --jobsToAdd) {
-			results.emplace_back(threadPool.addJob(generateRenderJob(jobsToAdd)));
+			results.emplace_back(threadPool.addJob(generateRenderJob(samplesLeft)));
 			--samplesLeft;
 		}
 		applyFutures();

@@ -28,8 +28,10 @@ class Renderer
 	double const normalizer_;
 	Camera const cam_;
 
-	Color branchedRadiance(IntersectionTrace trace, std::mt19937& rnd, unsigned int depth) const;
-	Color radiance(Ray r, std::mt19937& rnd, unsigned int depth) const;
+	Color branchingRadiance(Ray r, std::mt19937& rnd, unsigned int depth) const;
+	/*Color branchedRadiance(IntersectionTrace const& trace, std::mt19937& rnd, unsigned int depth) const;*/
+	/*Color radiance(Ray r, std::mt19937& rnd, unsigned int depth) const;*/
+	Color radiance(IntersectionTrace const& trace, Ray r, std::mt19937& rnd, unsigned int depth) const;
 
 	auto generateRenderJob(std::size_t sample);
 
