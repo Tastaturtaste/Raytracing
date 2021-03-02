@@ -10,7 +10,7 @@ struct RenderParams {
 	int numUSamples{ 4 };
 	int numVSamples{ 4 };
 	bool preview{ false };
-	int max_depth{ 2 };
+	int maxDepth{ 2 };
 	int samplesPerPixel{ 10 };
 	double FOV{ 90 };
 	int sizeX{ 720 };

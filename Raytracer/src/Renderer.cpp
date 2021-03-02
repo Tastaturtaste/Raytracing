@@ -37,7 +37,7 @@ Color Renderer::branchedRadiance(IntersectionTrace trace, std::mt19937& rnd, uns
 }
 
 Color Renderer::radiance(Ray r, std::mt19937& rnd, unsigned int depth) const {
-	if (depth > renderParams_.max_depth)
+	if (depth > renderParams_.maxDepth)
 		return {};
 
 	if (renderParams_.preview) {
@@ -51,7 +51,7 @@ Color Renderer::radiance(Ray r, std::mt19937& rnd, unsigned int depth) const {
 	Color result{};
 	Color convolution{1,1,1};
 
-	while (depth <= renderParams_.max_depth) {
+	while (depth <= renderParams_.maxDepth) {
 		++depth;
 		std::optional<IntersectionTrace> nearest = find_nearest(r);
 		if (!nearest.has_value()) {

@@ -15,16 +15,15 @@
 #include "utilities.h"
 
 
+std::string constructFilename(std::string obj_file, RenderParams const& rp);
+
 int main(int argc, char* argv[]) {
 
 	using namespace Tracer;
 
-	constexpr std::size_t default_width = 720;
-	constexpr std::size_t default_height = 480;
-
 	argparse::ArgumentParser program("raytracer");
 	program.add_argument("objfile").help("The obj file describing the scene").action([](std::string_view sv) -> std::string { return std::string(sv); });// .default_value(std::string(""));
-	program.add_argument("-spp", "--sampled-per-pixel").help("samples per pixel").default_value(100).action([](std::string_view sv) {
+	program.add_argument("-spp", "--sampled-per-pixel").help("samples per pixel").default_value(10).action([](std::string_view sv) {
 		int const n = asNumber<int>(sv);
 		if (n < 0)
 			throw std::runtime_error("argument for number of samples per pixel not valid!");
@@ -45,7 +44,7 @@ int main(int argc, char* argv[]) {
 		});
 	program.add_argument("-d", "--max-depth").help("Number of bounces.").default_value(4).action([](std::string_view sv) {
 		int const n = asNumber<int>(sv);
-		if (n < 1)
+		if (n < 0)
 			throw std::runtime_error("Argument for number of bounces not valid!");
 		return n;
 		});
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
 		.numUSamples{program.get<int>("-split-u")}
 		,.numVSamples{program.get<int>("-split-v")}
 		,.preview{program.get<bool>("-pv")}
-		,.max_depth{program.get<int>("-d")}
+		,.maxDepth{program.get<int>("-d")}
 		,.samplesPerPixel{program.get<int>("-spp")}
 		,.FOV{45}
 		,.sizeX{program.get<int>("-x")}
@@ -88,13 +87,10 @@ int main(int argc, char* argv[]) {
 		,.camUp{norm3::yAxis()}
 	};
 
-	auto png = pngwriter(renderParams.sizeX, renderParams.sizeY, 0.0, "renderimage.png");
+	std::string outname = constructFilename(obj_filename, renderParams);
+	auto png = pngwriter(renderParams.sizeX, renderParams.sizeY, 0.0, outname.c_str());
 
 	// begin rendering
-
-	//Renderer renderer(Scene::hull_sphere(), renderParams);
-	// Renderer renderer(Scene::debug_scene(), renderParams);
-	// Renderer renderer(Scene::light_distribution(), renderParams);
 
 	auto const scene = [&](){ 
 		if (obj_filename.size() > 0) {
@@ -124,4 +120,11 @@ int main(int argc, char* argv[]) {
 	png.close();
 
 	return 0;
+}
+
+std::string constructFilename(std::string obj_file, RenderParams const& rp) {
+	return obj_file.substr(0, obj_file.find_last_of("."))
+		.append("_").append(std::to_string(rp.samplesPerPixel)).append("spp")
+		.append("_").append(std::to_string(rp.maxDepth)).append("d")
+		.append(".png");
 }
