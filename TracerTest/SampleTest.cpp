@@ -22,32 +22,62 @@ namespace TracerTest
 		std::random_device rd{};
 		std::mt19937 rnd;
 		SampleTest() : rnd(std::mt19937(rd())) {}
-		TEST_METHOD(TestHemisphereSampleAverage)
+		const size_t NumSamples = 100000;
+
+		TEST_METHOD(TestHemisphereSampleAverageX)
 		{
 			using namespace Samples;
-			constexpr auto NumSamples = 100000;
-
-			std::uniform_real_distribution uni(0.0, 1.0);
-			auto vec = glm::dvec3(0.0, 0.0, 1.0);
+			std::uniform_real_distribution<double> uni(0.0, 1.0);
+			auto vec = glm::dvec3(1.0, 0.0, 0.0);
 			auto norm = norm3(vec);
-			const auto basis = norm3::orthogonalFromZ( norm );
-			glm::dvec3 average = basis[2].getVec();
+			const auto basis = norm3::orthogonalFromY(norm);
+			glm::dvec3 average = glm::dvec3(0);
 			for (std::size_t i = 0; i < NumSamples; ++i) {
 				average = average + hemispheresampleCosWeighted(basis, uni(rnd), uni(rnd)).getVec();
 			}
 			auto normAvg = norm3(average);
-			const auto dot = glm::dot(basis[2].getVec(), normAvg.getVec());
-			Assert::IsTrue(std::abs(dot) > (1.0-constants::EPS));
+			const auto dot = glm::dot(norm.getVec(), normAvg.getVec());
+			Assert::IsTrue(std::abs(dot) > (1.0 - constants::EPS));
+		}
+		TEST_METHOD(TestHemisphereSampleAverageY)
+		{
+			using namespace Samples;
+			std::uniform_real_distribution<double> uni(0.0, 1.0);
+			auto vec = glm::dvec3(0.0, 1.0, 0.0);
+			auto norm = norm3(vec);
+			const auto basis = norm3::orthogonalFromY(norm);
+			glm::dvec3 average = glm::dvec3(0);
+			for (std::size_t i = 0; i < NumSamples; ++i) {
+				average = average + hemispheresampleCosWeighted(basis, uni(rnd), uni(rnd)).getVec();
+			}
+			auto normAvg = norm3(average);
+			const auto dot = glm::dot(norm.getVec(), normAvg.getVec());
+			Assert::IsTrue(std::abs(dot) > (1.0 - constants::EPS));
+		}
+		TEST_METHOD(TestHemisphereSampleAverageZ)
+		{
+			using namespace Samples;
+			std::uniform_real_distribution<double> uni(0.0, 1.0);
+			auto vec = glm::dvec3(0.0, 0.0, 1.0);
+			auto norm = norm3(vec);
+			const auto basis = norm3::orthogonalFromY(norm);
+			glm::dvec3 average = glm::dvec3(0);
+			for (std::size_t i = 0; i < NumSamples; ++i) {
+				average = average + hemispheresampleCosWeighted(basis, uni(rnd), uni(rnd)).getVec();
+			}
+			auto normAvg = norm3(average);
+			const auto dot = glm::dot(norm.getVec(), normAvg.getVec());
+			Assert::IsTrue(std::abs(dot) > (1.0 - constants::EPS));
+
+
 		}
 		TEST_METHOD(TestHemisphereSampleZoneCount)
 		{
 			using namespace Samples;
-			constexpr auto NumSamples = 100000;
-
-			std::uniform_real_distribution uni(0.0,1.0);
+			std::uniform_real_distribution<double> uni(0.0, 1.0);
 			auto vec = glm::dvec3(0.0, 0.0, 1.0);
 			auto norm = norm3(vec);
-			const auto basis = norm3::orthogonalFromZ(norm);
+			const auto basis = norm3::orthogonalFromY(norm);
 			auto countXPositiv = 0u;
 			auto countXNegativ = 0u;
 			auto countYPositiv = 0u;
@@ -90,7 +120,7 @@ namespace TracerTest
 
 			auto vec = glm::dvec3(0.0, 0.0, 1.0);
 			auto norm = norm3(vec);
-			const auto basis = norm3::orthogonalFromZ(norm);
+			const auto basis = norm3::orthogonalFromY(norm);
 			glm::dvec3 avg{};
 			constexpr auto maxUSamples = 4;
 			constexpr auto maxVSamples = 4;
@@ -107,6 +137,26 @@ namespace TracerTest
 			}
 			avg = glm::normalize(avg);
 			Assert::IsTrue(avg.z > (1 - constants::EPS));
+		}
+		TEST_METHOD(TestConeSamplesInCone) {
+			using namespace Samples;
+			std::uniform_real_distribution uni(0.0, 1.0);
+
+			for (std::size_t i = 0; i < NumSamples; ++i) {
+				auto norm = norm3(glm::dvec3(1 - 2*uni(rnd), 1 - 2*uni(rnd), 1 - 2*uni(rnd)));
+				const auto basis = norm3::orthogonalFromY(norm);
+				const double coneAngle = uni(rnd) * constants::pi;
+				const auto u = uni(rnd);
+				const auto v = uni(rnd);
+				const norm3 outbound = Samples::conesampleCosWeighted(basis, coneAngle, u, v);
+				auto const dot = glm::dot(outbound.getVec(), norm.getVec());
+				auto const cos = glm::cos(0.5 * coneAngle);
+				if (dot >= cos)
+				{
+					Assert::IsTrue(dot >= cos);
+
+				}
+			}
 		}
 	};
 }

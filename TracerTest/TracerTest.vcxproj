@@ -148,7 +148,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories);$(SolutionDir)Raytracer\bin-int\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Sphere.obj;Scene.obj;Renderer.obj;Samples.obj;Triangle.obj;Camera.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LoadScene.obj;Sphere.obj;Scene.obj;Renderer.obj;Samples.obj;Triangle.obj;Camera.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -196,7 +196,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories);$(SolutionDir)Raytracer\bin-int\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Sphere.obj;Scene.obj;Renderer.obj;Samples.obj;Triangle.obj;Camera.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LoadScene.obj;Sphere.obj;Scene.obj;Renderer.obj;Samples.obj;Triangle.obj;Camera.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='FastDebug|x64'">
@@ -214,7 +214,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories);$(SolutionDir)Raytracer\bin-int\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Sphere.obj;Scene.obj;Renderer.obj;Samples.obj;Triangle.obj;Camera.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LoadScene.obj;Sphere.obj;Scene.obj;Renderer.obj;Samples.obj;Triangle.obj;Camera.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -30,5 +30,5 @@ public:
 	Camera(std::size_t pixelWidth, std::size_t PixelHeight, glm::dvec3 eye, glm::dvec3 motive, norm3 up, double FOV);  // FOV input in degrees
 
 
-	[[nodiscard]] Ray getRay(glm::dvec2 pixCoord, std::mt19937& rnd) const;
+	[[nodiscard]] Ray getRay(glm::dvec2 pixCoord, double u, double v) const;
 };

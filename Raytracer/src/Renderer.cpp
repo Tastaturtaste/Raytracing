@@ -6,6 +6,7 @@
 #include "Samples.h"
 #include "Color.h"
 #include "Ray.h"
+#include "BxDFs.h"
 
 #include <numeric>
 #include <execution>
@@ -17,21 +18,27 @@ constexpr Ray outRay(const glm::dvec3& pos, const norm3& dir) noexcept {
 	return Ray(pos + dir.getVec() * constants::EPS, dir);
 }
 
-inline Ray getOutray(IntersectionTrace const& trace, Ray const& incoming, std::mt19937& rnd) {
-	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
-	norm3 outbound{ norm3::yAxis() };
-	if (uni(rnd) < trace.material->prob_diffuse)
-	{
-		const std::array<norm3, 3> base = norm3::orthogonalFromZ(trace.normal);
-		outbound = Samples::hemispheresampleCosWeighted(base, uni(rnd), uni(rnd));
-	}
-	else
-	{
-		const std::array<norm3, 3> base = norm3::orthogonalFromZ(norm3(glm::reflect(incoming.direction().getVec(), trace.normal.getVec())));
-		outbound = Samples::conesampleCosWeighted(base, trace.material->reflection_cone_radians, uni(rnd), uni(rnd));
-	}
-	return outRay(trace.hit_position, outbound);
-}
+//enum class reflectionType{diffuse=0, specular};
+//
+//inline Ray getOutray(IntersectionTrace const& trace, Ray const& incoming, reflectionType rt, const double u, const double v) {
+//	norm3 outbound{ norm3::yAxis() };
+//	switch (rt){
+//	case reflectionType::diffuse: {
+//		const std::array<norm3, 3> base = norm3::orthogonalFromY(trace.normal);
+//		outbound = Samples::hemispheresampleCosWeighted(base, u, v);
+//	}
+//		break;
+//
+//	case reflectionType::specular: {
+//		const std::array<norm3, 3> base = norm3::orthogonalFromY(norm3(glm::reflect(incoming.direction().getVec(), trace.normal.getVec())));
+//		outbound = Samples::conesampleCosWeighted(base, 0.0 * trace.material->reflection_cone_radians, u, v);
+//	}
+//		break;
+//	default:
+//		throw std::logic_error("Unhandled reflectionType!");
+//	}
+//	return outRay(trace.hit_position, outbound);
+//}
 
 Color Renderer::branchingRadiance(Ray r, std::mt19937& rnd, unsigned int depth) const {
 	Color result{};
@@ -51,33 +58,34 @@ Color Renderer::branchingRadiance(Ray r, std::mt19937& rnd, unsigned int depth) 
 		for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
 			const double u = (static_cast<double>(uSample) + uni(rnd)) / maxUSamples;
 			const double v = (static_cast<double>(vSample) + uni(rnd)) / maxVSamples;
-			result += radiance(trace.value(), getOutray(trace.value(), r, rnd), rnd, depth);
+			bxdf::bxdfResult bxdfRes = bxdf::bxdf(r, trace.value(), u, v, uni(rnd));
+			result += radiance(trace.value(), std::move(bxdfRes), rnd, depth);
 		}
 	}
 	return result / maxUSamples / maxVSamples;
 }
 
-Color Renderer::radiance(IntersectionTrace const& trace, Ray r, std::mt19937& rnd, unsigned int depth) const {
+Color Renderer::radiance(IntersectionTrace const& trace, bxdf::bxdfResult bxdfRes, std::mt19937& rnd, unsigned int depth) const {
 	// depth == number of bounces after initial hit
 
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
-	Color result{};
-	Color convolution{1,1,1};
-	result += convolute(trace.material->light_color, convolution);
-	convolution = convolute(convolution, trace.material->diffuse_color);
+	Color result{ trace.material->light_color };
+	Color convolution{ bxdfRes.attenuation };
 
-	norm3 outbound{ norm3::yAxis() }; // Initial value is not used but has to be initialized because norm3 is not default constructible
+	Ray r{trace.hit_position, bxdfRes.out};
+
 	std::optional<IntersectionTrace> nearest{ trace };
 	for (; depth < renderParams_.maxDepth; ++depth) {
-		r = getOutray(nearest.value(), r, rnd);
 		nearest = find_nearest(r);
 		// If no material is hit no further bounces have to be made
 		// No hit counts as black
 		if (!nearest.has_value()) {
 			break;
 		}
-		result += convolute(nearest->material->light_color, convolution);
-		convolution = convolute(convolution, nearest->material->diffuse_color);
+		result += convolution * nearest->material->light_color;
+		bxdfRes = bxdf::bxdf(r, nearest.value(), uni(rnd), uni(rnd), uni(rnd));
+		convolution *= bxdfRes.attenuation;
+		r = { nearest->hit_position, bxdfRes.out };
 	}
 	return result;
 }
@@ -90,11 +98,12 @@ auto Renderer::generateRenderJob(std::size_t sample) {
 	return 	[this, seed]() {
 		auto rnd = std::mt19937(seed);
 		std::vector<Color> pixels_;
+		std::uniform_real_distribution<double> uni{ 0.0,1.0 };
 		pixels_.reserve(renderParams_.sizeX * renderParams_.sizeY);
 		Ray r{};
 		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
 			for (std::size_t x = 0; x < renderParams_.sizeX; ++x) {
-				r = cam_.getRay({ x, y }, rnd);
+				r = cam_.getRay({ x, y }, uni(rnd), uni(rnd));
 				//pixels_[y * renderParams_.sizeX + x] = radiance(r, rnd, 0);
 				pixels_.emplace_back(branchingRadiance(r, rnd, 0u) / renderParams_.samplesPerPixel);
 			}

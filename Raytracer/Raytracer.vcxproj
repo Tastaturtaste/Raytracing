@@ -210,7 +210,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLM_FORCE_INTRINSICS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)util/;$(ProjectDir)src;$(ProjectDir)primitives</AdditionalIncludeDirectories>
@@ -238,6 +238,7 @@
   <ItemGroup>
     <ClInclude Include="primitives\Geometry.h" />
     <ClInclude Include="primitives\BasicGeometry.h" />
+    <ClInclude Include="src\BxDFs.h" />
     <ClInclude Include="src\Counter.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Camera.h" />

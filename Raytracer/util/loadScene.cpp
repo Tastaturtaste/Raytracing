@@ -3,25 +3,18 @@
 #include <string>
 #include <string_view>
 #include <fstream>
-#include <sstream>
 #include <vector>
 #include <unordered_map>
 #include <charconv>
 #include <span>
 #include "spdlog\spdlog.h"
 #include "glm\glm.hpp"
-#include "ctre.hpp"
 #include "Scene.h"
 #include "Geometry.h"
 #include "Material.h"
 #include "utilities.h"
 
 namespace Tracer {
-
-template<class T = double>
-glm::vec<3, T> parse_vertex(std::span<std::string_view> tokens) {
-	return { asNumber<T>(tokens[0]), asNumber<T>(tokens[1]), asNumber<T>(tokens[2]) };
-}
 
 std::vector<std::string_view> splitString(std::string_view line, std::string_view delims) {
 	std::vector<std::string_view> tokens;
@@ -66,7 +59,7 @@ std::vector<size_t> parse_indices(std::string_view line, size_t num_vertices) {
 	return indices;
 }
 
-static std::string_view cutAtDelimiter(std::string_view sv, char delim) {
+static std::string_view cutAtDelimiter(std::string_view sv, char delim) noexcept {
 	auto svEnd = sv.find(delim);
 	if (svEnd == sv.npos) {
 		svEnd = sv.size();
@@ -110,6 +103,15 @@ std::unordered_map<std::string, std::unique_ptr<Material>> loadMaterials(std::is
 			}
 			materials[mat_name]->diffuse_color = { asNumber<double>(tokens.at(1)), asNumber<double>(tokens.at(2)), asNumber<double>(tokens.at(3)) };
 		}
+		else if (tokens.at(0) == "Ks") {
+			if (tokens.size() != 4) {
+				throw std::runtime_error("Wrong number of tokens for declaration of specular color!");
+			}
+			if (mat_name.size() == 0) {
+				throw std::runtime_error("No material for the specular color specified!");
+			}
+			materials[mat_name]->specular_color = { asNumber<double>(tokens.at(1)), asNumber<double>(tokens.at(2)), asNumber<double>(tokens.at(3)) };
+		}
 		else if (tokens.at(0) == "Ke") {
 			if (tokens.size() != 4) {
 				throw std::runtime_error("Wrong number of tokens for declaration of emissive color!");
@@ -126,9 +128,11 @@ std::unordered_map<std::string, std::unique_ptr<Material>> loadMaterials(std::is
 			if (mat_name.size() == 0) {
 				throw std::runtime_error("No material for the specular coefficient specified!");
 			}
-			// Ns typically in range [0,1000]
-			auto val = std::clamp(asNumber<double>(tokens.at(1)) / 1000., 0.0, 1.0);
-			materials[mat_name]->reflection_cone_radians = constants::pi * val;
+			auto const val = asNumber<double>(tokens.at(1));
+			if (val <= 0.) {
+				throw std::runtime_error("Specular exponent has to be greater than 0!");
+			}
+			materials[mat_name]->specularExponent = val;
 		}
 	}
 	return materials;

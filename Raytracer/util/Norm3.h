@@ -57,6 +57,20 @@ public:
 		assert(std::abs(glm::dot(xx, yy)) < constants::EPS);	// put in unit tests
 		return { knownNormal(xx),knownNormal(yy),knownNormal(z.vec_) };
 	}
+	inline static std::array<norm3, 3> orthogonalFromY(const norm3& y) noexcept {
+		// y is up direction
+		// Choose one axis that is not parallel to y
+		const auto x = (std::abs(glm::dot(norm3::xAxis().vec_, y.vec_)) < 1.0 - constants::EPS ? norm3::xAxis() : norm3::zAxis()).vec_;
+		// Make another axis orthogonal to y and choosen axis
+		const auto z = glm::cross(x, y.vec_);
+		const auto xx = glm::normalize(glm::cross(y.vec_, z));
+		const auto zz = glm::normalize(z);
+
+		assert(glm::dot(glm::cross(xx, y.vec_), zz) + constants::EPS >= 1.);
+		assert(glm::dot(glm::cross(y.vec_, zz), xx) + constants::EPS >= 1.);
+		assert(glm::dot(glm::cross(zz, xx), y.vec_) + constants::EPS >= 1.);
+		return { knownNormal(xx),knownNormal(y.vec_),knownNormal(zz) };
+	}
 	inline static std::array<norm3, 3> orthogonalFromYZ(const norm3& y, const norm3& z) noexcept {
 		const auto x = glm::normalize(glm::cross(y.vec_, z.vec_));
 		const auto zz = glm::normalize(glm::cross(x, y.vec_));

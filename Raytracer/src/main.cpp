@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 	using namespace Tracer;
 
 	argparse::ArgumentParser program("raytracer");
-	program.add_argument("objfile").help("The obj file describing the scene").action([](std::string_view sv) -> std::string { return std::string(sv); });// .default_value(std::string(""));
+	program.add_argument("-o","--objfile").help("The obj file describing the scene. If no file is provided a default example scene will be rendered.").action([](std::string_view sv) -> std::string { return std::string(sv); }).default_value(std::string("Example.obj"));
 	program.add_argument("-spp", "--sampled-per-pixel").help("samples per pixel").default_value(10).action([](std::string_view sv) {
 		int const n = asNumber<int>(sv);
 		if (n < 0)
@@ -54,13 +54,12 @@ int main(int argc, char* argv[]) {
 			throw std::runtime_error("Argument for width of picture not valid!");
 		return n;
 		});
-	program.add_argument("-y", "--size-y").help("Height of the picture.").default_value(480).action([](std::string_view sv) {
+	program.add_argument("-y", "--size-y").help("Height of the picture.").default_value(720).action([](std::string_view sv) {
 		int const n = asNumber<int>(sv);
 		if (n < 0)
 			throw std::runtime_error("Argument for height of picture not valid!");
 		return n;
 		});
-
 
 	try {
 		program.parse_args(argc, argv);
@@ -68,7 +67,6 @@ int main(int argc, char* argv[]) {
 	catch (std::runtime_error const& err) {
 		spdlog::error("{}\n", err.what());
 	}
-	std::string const obj_filename = program.get<std::string>("objfile");
 	std::size_t const maxx = program.get<int>("-x");
 	std::size_t const maxy = program.get<int>("-y");
 
@@ -87,13 +85,14 @@ int main(int argc, char* argv[]) {
 		,.camUp{norm3::yAxis()}
 	};
 
+	auto obj_filename = program.get<std::string>("--objfile");
 	std::string outname = constructFilename(obj_filename, renderParams);
 	auto png = pngwriter(renderParams.sizeX, renderParams.sizeY, 0.0, outname.c_str());
 
 	// begin rendering
 
 	auto const scene = [&](){ 
-		if (obj_filename.size() > 0) {
+		if (obj_filename != "Example.obj") {
 			auto obj_file = std::ifstream(obj_filename);
 			return loadScene(obj_file);
 		}

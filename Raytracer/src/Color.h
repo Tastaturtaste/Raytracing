@@ -14,7 +14,12 @@ struct Color {
 	constexpr double g() const noexcept { return vec_.g; }
 	constexpr double b() const noexcept { return vec_.b; }
 	constexpr Color& operator+=(const Color& b) noexcept;
+	constexpr Color& operator*=(const Color& rhs) noexcept;
 };
+
+constexpr Color operator*(const Color& a, const Color& b) noexcept {
+	return Color(a.vec_ * b.vec_);
+}
 
 constexpr Color convolute(const Color& a, const Color& b) noexcept {
 	return Color(a.vec_ * b.vec_);
@@ -22,6 +27,11 @@ constexpr Color convolute(const Color& a, const Color& b) noexcept {
 
 constexpr Color operator+(const Color& a, const Color& b) noexcept {
 	return Color( a.vec_ + b.vec_ );
+}
+
+constexpr Color& Color::operator*=(const Color& rhs) noexcept {
+	vec_ *= rhs.vec_;
+	return *this;
 }
 
 constexpr Color& Color::operator+=(const Color& rhs) noexcept {

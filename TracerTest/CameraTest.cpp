@@ -30,7 +30,7 @@ namespace TracerTest
 			norm3 dir = norm3(motive - camPos);
 			for (std::size_t y = 0; y < maxy; ++y) {
 				for (std::size_t x = 0; x < maxx; ++x) {
-					avg_ += cam.getRay(x, y, rnd).direction().getVec();
+					avg_ += cam.getRay({ x, y }, rnd).direction().getVec();
 				}
 			}
 			norm3 avg = norm3(avg_);

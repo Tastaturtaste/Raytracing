@@ -23,9 +23,8 @@ inline glm::dvec4 Camera::cameraToWorld(glm::dvec4 camCoord) const {
 	return glm::inverse(viewMat_) * camCoord;
 }
 
-Ray Camera::getRay(glm::dvec2 pixCoord, std::mt19937& rnd) const {
-	std::uniform_real_distribution<double> const uni{ 0., 1. };
-	auto const aaPix = glm::dvec2(pixCoord.x + uni(rnd), pixCoord.y + uni(rnd));
+Ray Camera::getRay(glm::dvec2 pixCoord, double u, double v) const {
+	auto const aaPix = glm::dvec2(pixCoord.x + u, pixCoord.y + v);
 	// Transform pixel into camera space
 	auto const camPixCoord = pixelToCamera(aaPix);
 	glm::dvec4 origin = { 0.,0.,0.,1. };

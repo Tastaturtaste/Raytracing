@@ -20,6 +20,10 @@ struct RenderParams {
 	norm3 camUp{ norm3::zAxis() };
 };
 
+namespace bxdf {
+	struct bxdfResult;
+}
+
 class Renderer
 {
 	using intersecfn = std::optional<IntersectionTrace>(Ray const& r);
@@ -31,7 +35,7 @@ class Renderer
 	Color branchingRadiance(Ray r, std::mt19937& rnd, unsigned int depth) const;
 	/*Color branchedRadiance(IntersectionTrace const& trace, std::mt19937& rnd, unsigned int depth) const;*/
 	/*Color radiance(Ray r, std::mt19937& rnd, unsigned int depth) const;*/
-	Color radiance(IntersectionTrace const& trace, Ray r, std::mt19937& rnd, unsigned int depth) const;
+	Color radiance(IntersectionTrace const& trace, bxdf::bxdfResult, std::mt19937& rnd, unsigned int depth) const;
 
 	auto generateRenderJob(std::size_t sample);
 
