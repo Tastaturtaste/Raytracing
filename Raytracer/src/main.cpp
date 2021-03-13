@@ -5,6 +5,7 @@
 #include "pngwriter.h"
 #include "spdlog\spdlog.h"
 #include "argparse\argparse.hpp"
+#include "gsl-lite.hpp"
 
 #include "Scene.h"
 #include "Color.h"
@@ -13,11 +14,12 @@
 #include "Renderer.h"
 #include "Timer.h"
 #include "utilities.h"
+#include "OcTree.h"
 
 
 std::string constructFilename(std::string obj_file, RenderParams const& rp);
 
-int main(int argc, char* argv[]) {
+int main(int argc, char const* argv[]) {
 
 	using namespace Tracer;
 
@@ -60,6 +62,14 @@ int main(int argc, char* argv[]) {
 			throw std::runtime_error("Argument for height of picture not valid!");
 		return n;
 		});
+	program.add_argument("-cp", "--cam-position").help("Position of the camera in the scene.").nargs(3).default_value(std::vector<double>{0., 1., 3.}).action([](std::string_view sv) {
+		double const n = asNumber<double>(sv);
+		return n;
+		});
+	program.add_argument("-cm", "--cam-motive").help("Point in the scene the camara looks at.").nargs(3).default_value(std::vector<double>{0., 1., 0.}).action([](std::string_view sv) {
+		double const n = asNumber<double>(sv);
+		return n;
+		});
 
 	try {
 		program.parse_args(argc, argv);
@@ -70,6 +80,14 @@ int main(int argc, char* argv[]) {
 	std::size_t const maxx = program.get<int>("-x");
 	std::size_t const maxy = program.get<int>("-y");
 
+	auto camPosition = program.get<std::vector<double>>("-cp");
+	if (camPosition.size() != 3) {
+		throw std::runtime_error("Invalid number of coordinates for cam position!");
+	}
+	auto camMotive = program.get<std::vector<double>>("-cm");
+	if (camMotive.size() != 3) {
+		throw std::runtime_error("Invalid number of coordinates for cam motive");
+	}
 
 	const RenderParams renderParams{
 		.numUSamples{program.get<int>("-split-u")}
@@ -80,8 +98,8 @@ int main(int argc, char* argv[]) {
 		,.FOV{45}
 		,.sizeX{program.get<int>("-x")}
 		,.sizeY{program.get<int>("-y")}
-		,.camPosition{0., 1., 3.}
-		,.camMotive{0., 1., 0.}
+		,.camPosition{toGlm<double>(camPosition)}
+		,.camMotive{toGlm<double>(camMotive)}
 		,.camUp{norm3::yAxis()}
 	};
 
@@ -112,7 +130,7 @@ int main(int argc, char* argv[]) {
 
 	for (std::size_t y = 0; y < maxy; ++y) {
 		for (std::size_t x = 0; x < maxx; ++x) {
-			png.plot(static_cast<int>(x+1), static_cast<int>(y+1), pixels.at(y * maxx + x).r(), pixels.at(y * maxx + x).g(), pixels.at(y * maxx + x).b());
+			png.plot(gsl::narrow_cast<int>(x+1), gsl::narrow_cast<int>(y+1), pixels.at(y * maxx + x).r(), pixels.at(y * maxx + x).g(), pixels.at(y * maxx + x).b());
 		}
 	}
 

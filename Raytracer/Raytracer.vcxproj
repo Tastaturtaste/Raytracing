@@ -210,7 +210,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GLM_FORCE_INTRINSICS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)util/;$(ProjectDir)src;$(ProjectDir)primitives</AdditionalIncludeDirectories>
@@ -233,13 +233,17 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="primitives\Triangle.cpp" />
     <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="util\loadScene.cpp" />
+    <ClCompile Include="src\loadScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="primitives\BoundingBox.h" />
     <ClInclude Include="primitives\Geometry.h" />
-    <ClInclude Include="primitives\BasicGeometry.h" />
+    <ClInclude Include="primitives\GeometryConcept.h" />
     <ClInclude Include="src\BxDFs.h" />
+    <ClInclude Include="src\cmpVertexToPlane.h" />
     <ClInclude Include="src\Counter.h" />
+    <ClInclude Include="src\glmfmt.h" />
+    <ClInclude Include="src\OcTree.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\IntersectionTrace.h" />
@@ -252,8 +256,8 @@
     <ClInclude Include="util\func_ref.h" />
     <ClInclude Include="util\ThreadPool.h" />
     <ClInclude Include="util\Constants.h" />
-    <ClInclude Include="util\loadScene.h" />
-    <ClInclude Include="util\Norm3.h" />
+    <ClInclude Include="src\loadScene.h" />
+    <ClInclude Include="src\Norm3.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="util\Timer.h" />
     <ClInclude Include="util\utilities.h" />

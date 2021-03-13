@@ -18,7 +18,7 @@ struct Material
 		return { {}, {}, Color(power,power,power), 1.0, 1. };
 	}
 	static Material green_diffuse() noexcept {
-		Color c = Color(0.1, 0.4, 0.1);
+		constexpr Color c = Color(0.1, 0.4, 0.1);
 		return { c, c, {}, 0.9 , 10. };
 	}
 	static Material red_shiny() noexcept { 

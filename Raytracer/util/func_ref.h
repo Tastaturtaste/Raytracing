@@ -18,11 +18,11 @@ public:
 		std::same_as<std::invoke_result_t<F, Args...>, R>;
 	}
 	constexpr func_ref(F&& f) noexcept
-		: obj_(const_cast<void*>(reinterpret_cast<const void*>(std::addressof(f))))
+		: obj_(const_cast<void*>(static_cast<const void*>(std::addressof(f))))
 	{
 		callback_ = [](void* obj, Args... args) -> R {
 			return std::invoke(
-				*reinterpret_cast<typename std::add_pointer<F>::type>(obj),
+				*static_cast<typename std::add_pointer<F>::type>(obj),
 				std::forward<Args>(args)...);
 		};
 	}

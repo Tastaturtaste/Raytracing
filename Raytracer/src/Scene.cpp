@@ -1,21 +1,6 @@
 #include "Scene.h"
 #include <unordered_map>
 
-
-
-std::optional<IntersectionTrace> Scene::find_nearest(const Ray& r) const {
-	std::optional<IntersectionTrace> nearest;
-	double min_dist = std::numeric_limits<double>::infinity();
-	for (const Geometry& geometry : geometries_) {
-		auto temp = geometry.intersect(r);
-		if (temp.has_value() && temp->distance < min_dist) {
-			min_dist = temp->distance;
-			nearest.emplace(std::move(temp.value()));
-		}
-	}
-	return nearest;
-}
-
 namespace Scenes {
 
 	Scene basic_scene()

@@ -13,6 +13,7 @@
 #include "Geometry.h"
 #include "Material.h"
 #include "utilities.h"
+#include "gsl-lite.hpp"
 
 namespace Tracer {
 
@@ -43,7 +44,7 @@ std::vector<size_t> parse_indices(std::string_view line, size_t num_vertices) {
 		int idx;
 		auto [pos, ec] = std::from_chars(line.data(), line.data() + line.size(), idx);
 		if (idx < 1) {
-			idx = idx + num_vertices;
+			idx = idx + gsl::narrow_cast<int>(num_vertices);
 		}
 		else {
 			idx -= 1;
@@ -82,7 +83,7 @@ std::unordered_map<std::string, std::unique_ptr<Material>> loadMaterials(std::is
 	std::string mat_name;
 	while (std::getline(mtl_file, line)) {
 		++linenumber;
-		std::string_view lineView = cutAtDelimiter(line, '#');
+		std::string_view const lineView = cutAtDelimiter(line, '#');
 		auto tokens = splitString(lineView, " ");
 		if (tokens.size() == 0) {
 			continue;

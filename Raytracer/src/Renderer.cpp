@@ -7,6 +7,7 @@
 #include "Color.h"
 #include "Ray.h"
 #include "BxDFs.h"
+#include "gsl-lite.hpp"
 
 #include <numeric>
 #include <execution>
@@ -54,8 +55,8 @@ Color Renderer::branchingRadiance(Ray r, std::mt19937& rnd, unsigned int depth) 
 	const auto uni{ std::uniform_real_distribution<>(0.0,1.0) };
 	const auto maxUSamples = renderParams_.numUSamples;
 	const auto maxVSamples = renderParams_.numVSamples;
-	for (auto vSample = 0u; vSample < maxVSamples; ++vSample) {
-		for (auto uSample = 0u; uSample < maxUSamples; ++uSample) {
+	for (auto vSample = 0; vSample < maxVSamples; ++vSample) {
+		for (auto uSample = 0; uSample < maxUSamples; ++uSample) {
 			const double u = (static_cast<double>(uSample) + uni(rnd)) / maxUSamples;
 			const double v = (static_cast<double>(vSample) + uni(rnd)) / maxVSamples;
 			bxdf::bxdfResult bxdfRes = bxdf::bxdf(r, trace.value(), u, v, uni(rnd));
@@ -93,12 +94,12 @@ Color Renderer::radiance(IntersectionTrace const& trace, bxdf::bxdfResult bxdfRe
 auto Renderer::generateRenderJob(std::size_t sample) {
 
 	std::random_device r_device;
-	const unsigned int seed = static_cast<unsigned int>(r_device()) + static_cast<unsigned int>(sample);
+	const unsigned int seed = gsl::narrow_cast<unsigned int>(r_device()) + gsl::narrow_cast<unsigned int>(sample);
 
 	return 	[this, seed]() {
 		auto rnd = std::mt19937(seed);
 		std::vector<Color> pixels_;
-		std::uniform_real_distribution<double> uni{ 0.0,1.0 };
+		std::uniform_real_distribution<double> const uni{ 0.0,1.0 };
 		pixels_.reserve(renderParams_.sizeX * renderParams_.sizeY);
 		Ray r{};
 		for (std::size_t y = 0; y < renderParams_.sizeY; ++y) {
