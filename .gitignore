@@ -1,7 +1,7 @@
-**/.vs/**
+**/.vs
 **/*.vcxproj.user
 **/*.vscode
 **/*.ruleset
-**/bin
-**/bin-int
+**/build
 **/*.png
+**/vcpkg_installed

@@ -1,0 +1,12 @@
+{
+    "name": "raytracer",
+    "version": "0.0.1",
+    "dependencies": [
+        "pngwriter",
+        "spdlog",
+        "argparse",
+        "gsl-lite",
+        "fmt",
+        "glm"
+    ]
+}
